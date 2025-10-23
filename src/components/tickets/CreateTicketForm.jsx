@@ -14,7 +14,7 @@ const CreateTicketForm = ({ onClose, onSuccess }) => {
     setLoading(true);
     setError(null);
     
-    // NOTE: This assumes you have stored the JWT token in localStorage after login.
+   
     const token = localStorage.getItem('access_token');
 
     if (!token) {
@@ -35,11 +35,11 @@ const CreateTicketForm = ({ onClose, onSuccess }) => {
         }
       );
 
-      // On successful creation (HTTP 201)
+     
       if (response.status === 201) {
         alert(`Ticket ${response.data.id} created successfully!`);
-        onSuccess(response.data); // Notify parent component
-        onClose(); // Close the modal/form
+        onSuccess(response.data); 
+        onClose(); 
       }
     } catch (err) {
       console.error("Ticket creation failed:", err);

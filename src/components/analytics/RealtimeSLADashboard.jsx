@@ -121,7 +121,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
             aria-label="View all tickets"
           >
             <div className="text-sm text-gray-600">Total Tickets</div>
-            <div className="text-3xl font-bold text-blue-600">{slaData.overall.total_tickets}</div>
+            <div className="text-3xl font-bold text-blue-600">{slaData.overall?.total_tickets ?? 0}</div>
           </button>
           <button 
             className="bg-green-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-green-500" 
@@ -129,9 +129,9 @@ export default function RealtimeSLADashboard({ onCardClick }) {
             aria-label="View tickets that met SLA"
           >
             <div className="text-sm text-gray-600">Met SLA (Closed)</div>
-            <div className="text-3xl font-bold text-green-600">{slaData.overall.closed_met_sla}</div>
+            <div className="text-3xl font-bold text-green-600">{slaData.overall?.closed_met_sla ?? 0}</div>
             <div className="text-xs text-gray-500 mt-1">
-              {slaData.overall.closed_adherence_percentage}% adherence
+              {slaData.overall?.closed_adherence_percentage ?? 0}% adherence
             </div>
           </button>
           <button 
@@ -141,10 +141,10 @@ export default function RealtimeSLADashboard({ onCardClick }) {
           >
             <div className="text-sm text-gray-600">Violated SLA</div>
             <div className="text-3xl font-bold text-red-600">
-              {slaData.overall.closed_violated_sla + slaData.overall.open_violated}
+              {(slaData.overall?.closed_violated_sla ?? 0) + (slaData.overall?.open_violated ?? 0)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {slaData.overall.open_violated} currently open
+              {slaData.overall?.open_violated ?? 0} currently open
             </div>
           </button>
           <button 
@@ -153,7 +153,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
             aria-label="View at-risk tickets"
           >
             <div className="text-sm text-gray-600">At Risk</div>
-            <div className="text-3xl font-bold text-amber-600">{slaData.overall.open_at_risk}</div>
+            <div className="text-3xl font-bold text-amber-600">{slaData.overall?.open_at_risk ?? 0}</div>
             <div className="text-xs text-gray-500 mt-1">
               Open tickets near SLA
             </div>

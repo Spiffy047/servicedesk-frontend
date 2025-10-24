@@ -86,9 +86,9 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
   }, [performance?.performance_rating])
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">My Performance</h3>
+        <h3 className="text-base sm:text-lg font-semibold">My Performance</h3>
         <button 
           onClick={fetchPerformance}
           disabled={loading}
@@ -100,14 +100,14 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         </button>
       </div>
       
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <button 
           className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
           onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
           onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
           aria-label="View active tickets"
         >
-          <div className="text-2xl font-bold text-blue-600">{performance.active_tickets ?? 0}</div>
+          <div className="text-xl sm:text-2xl font-bold text-blue-600">{performance.active_tickets ?? 0}</div>
           <div className="text-xs text-gray-600">Active Tickets</div>
         </button>
         <button 
@@ -116,11 +116,11 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
           aria-label="View closed tickets"
         >
-          <div className="text-2xl font-bold text-green-600">{performance.closed_tickets ?? 0}</div>
+          <div className="text-xl sm:text-2xl font-bold text-green-600">{performance.closed_tickets ?? 0}</div>
           <div className="text-xs text-gray-600">Closed Tickets</div>
         </button>
         <div className="text-center p-3 bg-purple-50 rounded">
-          <div className="text-2xl font-bold text-purple-600">{performance.avg_handle_time ?? 0}h</div>
+          <div className="text-xl sm:text-2xl font-bold text-purple-600">{performance.avg_handle_time ?? 0}h</div>
           <div className="text-xs text-gray-600">Avg Handle Time</div>
         </div>
         <button 
@@ -129,7 +129,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
           aria-label="View SLA violations"
         >
-          <div className="text-2xl font-bold text-red-600">{performance.sla_violations ?? 0}</div>
+          <div className="text-xl sm:text-2xl font-bold text-red-600">{performance.sla_violations ?? 0}</div>
           <div className="text-xs text-gray-600">SLA Violations</div>
         </button>
       </div>
@@ -137,7 +137,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
       <div className={`p-4 rounded-lg ${ratingColor}`}>
         <div className="text-center">
           <div className="text-sm font-medium mb-1">Performance Rating</div>
-          <div className="text-2xl font-bold">{performance.performance_rating ?? 'N/A'}</div>
+          <div className="text-xl sm:text-2xl font-bold">{performance.performance_rating ?? 'N/A'}</div>
           <div className="text-sm mt-1">Score: {performance.performance_score ?? 0}</div>
         </div>
       </div>

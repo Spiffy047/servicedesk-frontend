@@ -20,6 +20,7 @@ export default function NormalUserDashboard({ user }) {
   const [error, setError] = useState(null)
   const [createError, setCreateError] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
     fetchTickets()
@@ -60,9 +61,11 @@ export default function NormalUserDashboard({ user }) {
       })
 
       if (response.ok) {
+        setSuccessMessage('Ticket created successfully!')
         setShowCreateModal(false)
         fetchTickets()
         e.target.reset()
+        setTimeout(() => setSuccessMessage(''), 3000)
       }
     } catch (error) {
       setCreateError('Failed to create ticket. Please try again.')

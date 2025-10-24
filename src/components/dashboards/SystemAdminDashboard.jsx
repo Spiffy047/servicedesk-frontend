@@ -135,7 +135,7 @@ export default function SystemAdminDashboard() {
 
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveTab('users')}>
                 <div className="text-sm text-gray-600">Total Users</div>
                 <div className="text-3xl font-bold text-gray-900 mt-2">{users.length}</div>
@@ -176,7 +176,7 @@ export default function SystemAdminDashboard() {
 
         {activeTab === 'users' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-semibold">User Management</h2>
               <button
                 onClick={() => {

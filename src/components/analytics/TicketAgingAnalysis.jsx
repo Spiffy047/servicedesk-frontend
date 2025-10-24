@@ -137,7 +137,11 @@ export default function TicketAgingAnalysis() {
                     {(data?.tickets || []).filter(ticket => 
                       ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       ticket.id?.toString().includes(searchTerm)
-                    ).map(ticket => {
+                    ).sort((a, b) => {
+                      const aVal = a[sortBy] || ''
+                      const bVal = b[sortBy] || ''
+                      return sortOrder === 'desc' ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal)
+                    }).map(ticket => {
                       const hoursOpen = calculateHoursOpen(ticket.created_at)
                       return (
                         <div key={ticket.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">

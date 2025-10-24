@@ -7,6 +7,7 @@ export default function DataModal({ title, data, onClose }) {
   const [sortOrder, setSortOrder] = useState('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [loading, setLoading] = useState(false)
   
   const filteredData = data.filter(item => 
     !searchTerm || 
@@ -34,7 +35,8 @@ export default function DataModal({ title, data, onClose }) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
   
-  const exportToCSV = () => {
+  const exportToCSV = async () => {
+    setLoading(true)
     const headers = ['ID', 'Title', 'Status', 'Priority', 'Created', 'Assigned']
     const csvData = filteredData.map(item => [
       item.id || '',
@@ -56,6 +58,7 @@ export default function DataModal({ title, data, onClose }) {
     a.download = `${title.replace(/\s+/g, '_')}.csv`
     a.click()
     URL.revokeObjectURL(url)
+    setLoading(false)
   }
   
   return (
@@ -67,9 +70,10 @@ export default function DataModal({ title, data, onClose }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={exportToCSV}
-                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                disabled={loading}
+                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
               >
-                Export CSV
+                {loading ? 'Exporting...' : 'Export CSV'}
               </button>
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>

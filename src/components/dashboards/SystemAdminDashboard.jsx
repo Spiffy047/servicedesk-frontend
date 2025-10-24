@@ -12,6 +12,7 @@ export default function SystemAdminDashboard() {
   const [showUserModal, setShowUserModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchUsers()
@@ -25,6 +26,7 @@ export default function SystemAdminDashboard() {
       setUsers(data)
       setAllUsers(data)
     } catch (error) {
+      setError('Failed to load users')
       console.error('Failed to fetch users:', error)
     } finally {
       setLoading(false)

@@ -90,9 +90,9 @@ export default function AgentPerformanceScorecard() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Agent Performance Scorecard</h3>
+        <h3 className="text-base sm:text-lg font-semibold">Agent Performance Scorecard</h3>
         <select 
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
@@ -106,7 +106,7 @@ export default function AgentPerformanceScorecard() {
       </div>
       <div className="space-y-4">
         {sortedAgents.map(agent => (
-          <div key={agent.agent_id} className="border rounded-lg p-4">
+          <div key={agent.agent_id} className="border rounded-lg p-3 sm:p-4">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h4 className="font-semibold text-gray-900">{agent.name || 'Unknown Agent'}</h4>
@@ -116,7 +116,7 @@ export default function AgentPerformanceScorecard() {
                 {agent.performance_rating || 'N/A'}
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <div className="text-gray-600">Active</div>
                 <div className="font-semibold text-lg">{agent.active_tickets ?? 0}</div>

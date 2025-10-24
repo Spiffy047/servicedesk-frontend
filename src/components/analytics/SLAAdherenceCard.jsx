@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
@@ -12,18 +12,21 @@ export default function SLAAdherenceCard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     setLoading(true)
     setError(null)
     fetch(`${API_URL}/tickets/analytics/sla-adherence`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
       .then(setData)
       .catch(err => {
         setError('Failed to load SLA data')
         console.error(err)
       })
       .finally(() => setLoading(false))
-  }
+  }, [])
 
   useEffect(() => {
     fetchData()

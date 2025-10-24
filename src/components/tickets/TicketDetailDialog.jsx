@@ -29,6 +29,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -196,6 +197,11 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
 
   const timeline = [...messages, ...activities]
     .sort((a, b) => new Date(a.timestamp || a.created_at) - new Date(b.timestamp || b.created_at))
+    .filter(item => 
+      !searchTerm || 
+      (item.message && item.message.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
 
   const canEdit = currentUser.role !== 'Normal User' || (currentUser.role === 'Normal User' && ticket.created_by === currentUser.id && ticket.status !== 'Closed')
 
@@ -338,7 +344,16 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50" ref={scrollRef}>
-          <h3 className="text-lg font-semibold mb-4">Timeline</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Timeline</h3>
+            <input
+              type="text"
+              placeholder="Search messages..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-3 py-1 border rounded text-sm w-48"
+            />
+          </div>
           <div className="space-y-4">
             {timeline.map((item, index) => (
               <div key={item.id || index} className={`flex gap-3 ${item.type === 'message' || item.message ? 'items-start' : 'items-center'}`}>

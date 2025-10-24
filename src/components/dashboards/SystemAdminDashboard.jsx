@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import SLAAdherenceCard from '../analytics/SLAAdherenceCard'
 import AgentPerformanceScorecard from '../analytics/AgentPerformanceScorecard'
 
@@ -303,4 +304,8 @@ export default function SystemAdminDashboard() {
       )}
     </div>
   )
+}
+
+SystemAdminDashboard.propTypes = {
+  // No props currently, but ready for future expansion
 }

@@ -28,6 +28,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -58,6 +59,15 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(() => {
+      fetchMessages()
+      fetchActivities()
+    }, 30000) // Refresh every 30 seconds
+    return () => clearInterval(interval)
+  }, [autoRefresh, fetchMessages])
 
   const fetchMessages = useCallback(async () => {
     try {

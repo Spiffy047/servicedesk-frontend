@@ -149,7 +149,7 @@ export default function TicketAgingAnalysis() {
                       return (
                         <div key={ticket.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">
                           <div className="flex-1">
-                            <span className="font-medium">{ticket.id}</span>
+                            <span className="font-medium text-blue-600">#{ticket.id}</span>
                             <span className="text-gray-600 ml-2">{ticket.title}</span>
                             <span className="text-gray-500 ml-2 text-xs">({formatHoursOpen(hoursOpen)} open)</span>
                           </div>

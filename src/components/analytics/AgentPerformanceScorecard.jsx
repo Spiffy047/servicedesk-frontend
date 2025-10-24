@@ -5,12 +5,19 @@ const API_URL = 'http://localhost:5002/api'
 export default function AgentPerformanceScorecard() {
   const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetch(`${API_URL}/analytics/agent-performance-detailed`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch agent data')
+        return res.json()
+      })
       .then(setAgents)
-      .catch(console.error)
+      .catch(err => {
+        setError(err.message)
+        console.error(err)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -21,6 +28,24 @@ export default function AgentPerformanceScorecard() {
       case 'Average': return 'bg-yellow-100 text-yellow-800'
       default: return 'bg-red-100 text-red-800'
     }
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">Agent Performance Scorecard</h3>
+        <div className="text-center py-8">
+          <div className="text-red-500 mb-2">⚠️</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-2 text-blue-600 hover:text-blue-800"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {

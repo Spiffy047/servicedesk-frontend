@@ -40,6 +40,14 @@ export default function DataModal({ title, data, onClose }) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
   
+  const clearFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('all')
+    setSortBy('id')
+    setSortOrder('asc')
+    setCurrentPage(1)
+  }
+  
   const exportToCSV = async () => {
     setLoading(true)
     const headers = ['ID', 'Title', 'Status', 'Priority', 'Created', 'Assigned']
@@ -119,6 +127,12 @@ export default function DataModal({ title, data, onClose }) {
               className="px-3 py-2 border rounded-md hover:bg-gray-50"
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
+            </button>
+            <button
+              onClick={clearFilters}
+              className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+            >
+              Clear
             </button>
           </div>
         </div>

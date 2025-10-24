@@ -7,7 +7,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchPerformance = () => {
     if (!agentId) return
     
     setLoading(true)
@@ -26,6 +26,10 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         console.error(err)
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchPerformance()
   }, [agentId])
 
   if (loading) {
@@ -51,7 +55,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           <div className="text-red-500 mb-2">⚠️</div>
           <p className="text-gray-600 text-sm">{error}</p>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={fetchPerformance} 
             className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
           >
             Try again
@@ -71,7 +75,17 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">My Performance</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">My Performance</h3>
+        <button 
+          onClick={fetchPerformance}
+          disabled={loading}
+          className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          title="Refresh data"
+        >
+          🔄
+        </button>
+      </div>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md transition-shadow" onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}>

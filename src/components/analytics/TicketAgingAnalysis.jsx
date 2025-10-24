@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import PropTypes from 'prop-types'
 import { calculateHoursOpen, formatHoursOpen } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
@@ -123,4 +124,8 @@ export default function TicketAgingAnalysis() {
       )}
     </div>
   )
+}
+
+TicketAgingAnalysis.propTypes = {
+  // No props currently, but ready for future expansion
 }

@@ -6,6 +6,8 @@ export default function AgentPerformanceScorecard() {
   const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sortBy, setSortBy] = useState('performance_score')
+  const [sortOrder, setSortOrder] = useState('desc')
 
   useEffect(() => {
     fetch(`${API_URL}/analytics/agent-performance-detailed`)
@@ -29,6 +31,12 @@ export default function AgentPerformanceScorecard() {
       default: return 'bg-red-100 text-red-800'
     }
   }
+
+  const sortedAgents = [...agents].sort((a, b) => {
+    const aVal = a[sortBy] ?? 0
+    const bVal = b[sortBy] ?? 0
+    return sortOrder === 'desc' ? bVal - aVal : aVal - bVal
+  })
 
   if (error) {
     return (
@@ -83,9 +91,21 @@ export default function AgentPerformanceScorecard() {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">Agent Performance Scorecard</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Agent Performance Scorecard</h3>
+        <select 
+          value={sortBy} 
+          onChange={(e) => setSortBy(e.target.value)}
+          className="text-sm border rounded px-2 py-1"
+        >
+          <option value="performance_score">Score</option>
+          <option value="closed_tickets">Closed Tickets</option>
+          <option value="active_tickets">Active Tickets</option>
+          <option value="avg_handle_time">Handle Time</option>
+        </select>
+      </div>
       <div className="space-y-4">
-        {agents.map(agent => (
+        {sortedAgents.map(agent => (
           <div key={agent.agent_id} className="border rounded-lg p-4">
             <div className="flex justify-between items-start mb-3">
               <div>

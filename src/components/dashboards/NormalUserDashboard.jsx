@@ -98,8 +98,11 @@ export default function NormalUserDashboard({ user }) {
             <div className="text-3xl font-bold text-blue-600 mt-2">{tickets.length}</div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Open Tickets', data: tickets.filter(t => t.status === 'Open') })}>
-            <div className="text-sm text-gray-600">Open</div>
-            <div className="text-3xl font-bold text-green-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">Open</div>
+              <div className="text-green-600">🟢</div>
+            </div>
+            <div className="text-3xl font-bold text-green-600">
               {tickets.filter(t => t.status === 'Open').length}
             </div>
           </div>

@@ -5,6 +5,12 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * NormalUserDashboard - Dashboard component for regular users to manage their tickets
+ * @param {Object} props - Component props
+ * @param {Object} props.user - User object with id and name
+ * @returns {JSX.Element} The rendered dashboard component
+ */
 export default function NormalUserDashboard({ user }) {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)

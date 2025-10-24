@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
@@ -45,7 +45,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/messages/ticket/${ticket.id}/timeline`)
       const data = await response.json()
@@ -54,7 +54,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       console.error('Failed to fetch messages:', err)
       setError('Failed to load messages')
     }
-  }
+  }, [ticket.id])
 
   const fetchActivities = async () => {
     try {

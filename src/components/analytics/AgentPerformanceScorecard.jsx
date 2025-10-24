@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * AgentPerformanceScorecard displays a sortable list of all agents with their performance metrics
+ * @returns {JSX.Element} The rendered scorecard component
+ */
 export default function AgentPerformanceScorecard() {
   const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(true)

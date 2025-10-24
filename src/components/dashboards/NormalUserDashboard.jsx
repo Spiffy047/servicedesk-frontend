@@ -12,6 +12,8 @@ export default function NormalUserDashboard({ user }) {
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [modalData, setModalData] = useState(null)
   const [error, setError] = useState(null)
+  const [createError, setCreateError] = useState(null)
+  const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     fetchTickets()
@@ -35,6 +37,9 @@ export default function NormalUserDashboard({ user }) {
     e.preventDefault()
     const formData = new FormData(e.target)
     
+    setCreating(true)
+    setCreateError(null)
+    
     try {
       const response = await fetch(`${API_URL}/tickets`, {
         method: 'POST',
@@ -54,7 +59,10 @@ export default function NormalUserDashboard({ user }) {
         e.target.reset()
       }
     } catch (error) {
+      setCreateError('Failed to create ticket. Please try again.')
       console.error('Failed to create ticket:', error)
+    } finally {
+      setCreating(false)
     }
   }
 

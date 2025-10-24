@@ -13,6 +13,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -43,6 +44,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       setMessages(Array.isArray(data) ? data : data.messages || [])
     } catch (err) {
       console.error('Failed to fetch messages:', err)
+      setError('Failed to load messages')
     }
   }
 

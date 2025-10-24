@@ -96,7 +96,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Real-Time SLA Adherence</h3>
           <div className="flex items-center gap-4">
@@ -114,7 +114,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <button 
             className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500" 
             onClick={() => onCardClick?.({ title: 'All Tickets', data: allTickets })}
@@ -175,7 +175,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <h4 className="text-md font-semibold mb-3">Priority Breakdown</h4>
             <div className="space-y-3">
@@ -266,7 +266,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h4 className="font-semibold text-blue-900 mb-2">SLA Targets</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
           {Object.entries(slaData.sla_targets).map(([priority, hours]) => (
             <div key={priority} className="bg-white rounded p-2">
               <span className="font-medium">{priority}:</span> {hours}h

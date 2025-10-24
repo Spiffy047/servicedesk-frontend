@@ -123,7 +123,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           <AgentPerformanceCard agentId={user.id} onCardClick={setModalData} tickets={tickets} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'My Assigned Tickets', data: myTickets })}>
             <div className="text-sm text-gray-600">Assigned Tickets</div>
             <div className="text-3xl font-bold text-blue-600 mt-2">
@@ -231,7 +231,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                     </div>
                   </div>
                   <p className="text-gray-700 mb-3">{ticket.description}</p>
-                  <div className="flex justify-between items-center mt-3">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-3">
                     <div className="flex gap-4 text-sm text-gray-500">
                       <span>Category: {ticket.category}</span>
                       <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
@@ -60,8 +60,11 @@ export default function SLAAdherenceCard() {
 
   if (!data) return null
 
-  const percentage = data?.adherence_percentage ?? 0
-  const color = percentage >= 90 ? 'green' : percentage >= 75 ? 'yellow' : 'red'
+  const { percentage, color } = useMemo(() => {
+    const pct = data?.adherence_percentage ?? 0
+    const clr = pct >= 90 ? 'green' : pct >= 75 ? 'yellow' : 'red'
+    return { percentage: pct, color: clr }
+  }, [data])
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

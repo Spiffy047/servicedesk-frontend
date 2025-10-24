@@ -14,7 +14,9 @@ export default function TicketAgingAnalysis() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
+    setError(null)
     fetch(`${API_URL}/tickets/analytics/aging`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch aging data')
@@ -26,6 +28,10 @@ export default function TicketAgingAnalysis() {
         console.error(err)
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
 
   const chartData = useMemo(() => 
@@ -42,7 +48,7 @@ export default function TicketAgingAnalysis() {
           <div className="text-red-500 mb-2">⚠️</div>
           <p className="text-gray-600">{error}</p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={fetchData}
             className="mt-2 text-blue-600 hover:text-blue-800"
           >
             Try again

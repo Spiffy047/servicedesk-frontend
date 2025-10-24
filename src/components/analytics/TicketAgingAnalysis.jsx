@@ -136,7 +136,7 @@ export default function TicketAgingAnalysis() {
                     <span>{bucket}</span>
                     <span className="text-gray-600">{data?.count ?? 0} tickets</span>
                   </summary>
-                  <div className="px-4 py-3 border-t bg-gray-50 space-y-2">
+                  <div className="px-4 py-3 border-t bg-gradient-to-r from-gray-50 to-gray-100 space-y-2">
                     {(data?.tickets || []).filter(ticket => 
                       ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       ticket.id?.toString().includes(searchTerm)

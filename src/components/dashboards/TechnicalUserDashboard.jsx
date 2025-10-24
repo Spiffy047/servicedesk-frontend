@@ -6,6 +6,13 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * TechnicalUserDashboard - Dashboard for technical users/agents to manage their assigned tickets
+ * @param {Object} props - Component props
+ * @param {Object} props.user - User object with id, name, and role
+ * @param {Function} props.onLogout - Logout callback function
+ * @returns {JSX.Element} The rendered technical user dashboard component
+ */
 export default function TechnicalUserDashboard({ user, onLogout }) {
   const [tickets, setTickets] = useState([])
   const [activeTab, setActiveTab] = useState('myQueue')

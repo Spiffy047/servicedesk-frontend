@@ -118,7 +118,7 @@ export default function TicketAgingAnalysis() {
         <>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="bucket" />
               <YAxis />
               <Tooltip contentStyle={{backgroundColor: "#f8f9fa", border: "1px solid #e9ecef"}} />

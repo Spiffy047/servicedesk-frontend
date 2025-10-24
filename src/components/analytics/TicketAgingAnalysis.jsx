@@ -125,7 +125,7 @@ export default function TicketAgingAnalysis() {
               <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          <div className="mt-6 space-y-3">
+          <div className="mt-8 space-y-4">
             {Object.entries(agingData || {}).map(([bucket, data]) => (
               (data?.count ?? 0) > 0 && (
                 <details key={bucket} className="border rounded-lg hover:shadow-md transition-shadow duration-200" role="group" aria-label={`${bucket} tickets breakdown`}>

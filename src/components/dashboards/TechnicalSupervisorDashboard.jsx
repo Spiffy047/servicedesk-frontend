@@ -179,14 +179,20 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Resolved Tickets', data: tickets.filter(t => t.status === 'Closed') })}>
-            <div className="text-sm text-gray-600">Resolved Tickets</div>
-            <div className="text-3xl font-bold text-green-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">Resolved Tickets</div>
+              <div className="text-green-600">✓</div>
+            </div>
+            <div className="text-3xl font-bold text-green-600">
               {tickets.filter(t => t.status === 'Closed').length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Violated Tickets', data: tickets.filter(t => t.sla_violated) })}>
-            <div className="text-sm text-gray-600">SLA Violated</div>
-            <div className="text-3xl font-bold text-red-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">SLA Violated</div>
+              <div className="text-red-600">⚠️</div>
+            </div>
+            <div className="text-3xl font-bold text-red-600">
               {tickets.filter(t => t.sla_violated).length}
             </div>
           </div>

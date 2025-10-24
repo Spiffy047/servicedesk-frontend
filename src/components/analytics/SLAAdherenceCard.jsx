@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
@@ -81,4 +82,8 @@ export default function SLAAdherenceCard() {
       )}
     </div>
   )
+}
+
+SLAAdherenceCard.propTypes = {
+  // No props currently, but ready for future expansion
 }

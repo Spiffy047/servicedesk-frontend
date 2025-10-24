@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import AgentPerformanceScorecard from '../analytics/AgentPerformanceScorecard'
 import RealtimeSLADashboard from '../analytics/RealtimeSLADashboard'
@@ -366,4 +367,12 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
       {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
     </div>
   )
+}
+
+TechnicalSupervisorDashboard.propTypes = {
+  user: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired
+  }).isRequired,
+  onLogout: PropTypes.func.isRequired
 }

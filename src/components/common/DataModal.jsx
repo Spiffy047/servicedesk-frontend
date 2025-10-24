@@ -76,7 +76,7 @@ export default function DataModal({ title, data, onClose }) {
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden mx-4 sm:mx-0" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b">
           <div className="flex justify-between items-center mb-4">
             <h2 id="modal-title" className="text-xl font-bold">
@@ -93,7 +93,7 @@ export default function DataModal({ title, data, onClose }) {
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               placeholder="Search data..."
@@ -167,7 +167,7 @@ export default function DataModal({ title, data, onClose }) {
                   </div>
                   {item.title && <div className="text-gray-900 mb-1">{item.title}</div>}
                   {item.description && <div className="text-gray-600 text-sm mb-2">{item.description}</div>}
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
                     {item.category && <div>Category: {item.category}</div>}
                     {item.created_at && <div>Created: {new Date(item.created_at).toLocaleString()}</div>}
                     {item.assigned_to && <div>Assigned: {item.assigned_to}</div>}

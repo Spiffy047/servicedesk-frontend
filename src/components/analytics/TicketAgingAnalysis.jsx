@@ -15,6 +15,32 @@ export default function TicketAgingAnalysis() {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
 
+  const exportData = () => {
+    const csvData = Object.entries(agingData || {}).flatMap(([bucket, data]) => 
+      (data?.tickets || []).map(ticket => ({
+        bucket,
+        id: ticket.id,
+        title: ticket.title,
+        priority: ticket.priority,
+        created_at: ticket.created_at,
+        sla_violated: ticket.sla_violated ? 'Yes' : 'No'
+      }))
+    )
+    
+    const csv = [
+      'Bucket,ID,Title,Priority,Created,SLA Violated',
+      ...csvData.map(row => `${row.bucket},${row.id},"${row.title}",${row.priority},${row.created_at},${row.sla_violated}`)
+    ].join('\n')
+    
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'ticket-aging-analysis.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const fetchData = () => {
     setLoading(true)
     setError(null)

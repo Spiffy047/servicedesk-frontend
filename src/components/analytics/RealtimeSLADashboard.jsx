@@ -8,8 +8,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * RealtimeSLADashboard displays real-time SLA adherence metrics and analytics
+ * @param {Object} props - Component props
+ * @param {Function} props.onCardClick - Callback function when metric cards are clicked
+ * @returns {JSX.Element} The rendered SLA dashboard component
+ */
 export default function RealtimeSLADashboard({ onCardClick }) {
-  // PropTypes will be defined at the end of the file
   const [slaData, setSlaData] = useState(null)
   const [lastUpdate, setLastUpdate] = useState(null)
   const [allTickets, setAllTickets] = useState([])

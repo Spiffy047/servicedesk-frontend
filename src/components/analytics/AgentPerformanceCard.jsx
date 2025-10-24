@@ -5,18 +5,26 @@ const API_URL = 'http://localhost:5002/api'
 export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) {
   const [performance, setPerformance] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!agentId) return
     
     setLoading(true)
+    setError(null)
     fetch(`${API_URL}/analytics/agent-performance-detailed`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch performance data')
+        return res.json()
+      })
       .then(data => {
         const agentData = data.find(a => a.agent_id === agentId)
         setPerformance(agentData)
       })
-      .catch(console.error)
+      .catch(err => {
+        setError(err.message)
+        console.error(err)
+      })
       .finally(() => setLoading(false))
   }, [agentId])
 
@@ -31,6 +39,23 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
             ))}
           </div>
           <div className="h-24 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center py-8">
+          <div className="text-red-500 mb-2">⚠️</div>
+          <p className="text-gray-600 text-sm">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+          >
+            Try again
+          </button>
         </div>
       </div>
     )

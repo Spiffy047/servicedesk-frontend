@@ -178,7 +178,11 @@ export default function TicketAgingAnalysis() {
           </div>
         </>
       ) : (
-        <p className="text-gray-500 text-center py-8">No aging data available</p>
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-4xl mb-4">📈</div>
+          <p className="text-gray-500">No aging data available</p>
+          <p className="text-gray-400 text-sm mt-2">Data will appear here once tickets are created</p>
+        </div>
       )}
     </div>
   )

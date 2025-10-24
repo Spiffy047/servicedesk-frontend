@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
@@ -136,4 +137,14 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
       </div>
     </div>
   )
+}
+
+AgentPerformanceCard.propTypes = {
+  agentId: PropTypes.number.isRequired,
+  onCardClick: PropTypes.func,
+  tickets: PropTypes.arrayOf(PropTypes.shape({
+    assigned_to: PropTypes.number,
+    status: PropTypes.string,
+    sla_violated: PropTypes.bool
+  }))
 }

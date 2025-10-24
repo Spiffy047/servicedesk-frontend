@@ -59,7 +59,7 @@ export default function TicketAgingAnalysis() {
       })
       .finally(() => {
         setLoading(false)
-        console.log('Aging data loaded successfully')
+        console.log('Aging data loaded successfully', Object.keys(agingData).length, 'buckets')
       })
   }
 

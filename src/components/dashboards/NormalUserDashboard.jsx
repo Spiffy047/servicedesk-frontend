@@ -276,9 +276,10 @@ export default function NormalUserDashboard({ user }) {
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium"
+                    disabled={creating}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Create Ticket
+                    {creating ? 'Creating...' : 'Create Ticket'}
                   </button>
                   <button
                     type="button"

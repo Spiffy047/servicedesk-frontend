@@ -159,7 +159,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
             <div className="text-sm text-gray-600">All Tickets</div>
             <div className="text-3xl font-bold text-gray-900 mt-2">
@@ -311,7 +311,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
 
         {activeTab === 'allTickets' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-semibold">All Tickets</h2>
               <button
                 onClick={exportTickets}

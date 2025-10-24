@@ -3,6 +3,14 @@ import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * AgentPerformanceCard component displays performance metrics for a specific agent
+ * @param {Object} props - Component props
+ * @param {number} props.agentId - The ID of the agent whose performance to display
+ * @param {Function} props.onCardClick - Callback function when a metric card is clicked
+ * @param {Array} props.tickets - Array of ticket objects for filtering
+ * @returns {JSX.Element} The rendered performance card component
+ */
 export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) {
   const [performance, setPerformance] = useState(null)
   const [loading, setLoading] = useState(false)

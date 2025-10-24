@@ -19,6 +19,15 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
       })
       .then(data => {
         const agentData = data.find(a => a.agent_id === agentId)
+        if (!agentData) {
+          throw new Error('Agent performance data not found')
+        }
+        // Validate required fields
+        const requiredFields = ['active_tickets', 'closed_tickets', 'avg_handle_time', 'sla_violations', 'performance_rating', 'performance_score']
+        const missingFields = requiredFields.filter(field => agentData[field] === undefined || agentData[field] === null)
+        if (missingFields.length > 0) {
+          console.warn('Missing performance data fields:', missingFields)
+        }
         setPerformance(agentData)
       })
       .catch(err => {
@@ -93,7 +102,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
           aria-label="View active tickets"
         >
-          <div className="text-2xl font-bold text-blue-600">{performance.active_tickets}</div>
+          <div className="text-2xl font-bold text-blue-600">{performance.active_tickets ?? 0}</div>
           <div className="text-xs text-gray-600">Active Tickets</div>
         </button>
         <button 
@@ -101,11 +110,11 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           onClick={() => onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
           aria-label="View closed tickets"
         >
-          <div className="text-2xl font-bold text-green-600">{performance.closed_tickets}</div>
+          <div className="text-2xl font-bold text-green-600">{performance.closed_tickets ?? 0}</div>
           <div className="text-xs text-gray-600">Closed Tickets</div>
         </button>
         <div className="text-center p-3 bg-purple-50 rounded">
-          <div className="text-2xl font-bold text-purple-600">{performance.avg_handle_time}h</div>
+          <div className="text-2xl font-bold text-purple-600">{performance.avg_handle_time ?? 0}h</div>
           <div className="text-xs text-gray-600">Avg Handle Time</div>
         </div>
         <button 
@@ -113,7 +122,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           onClick={() => onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
           aria-label="View SLA violations"
         >
-          <div className="text-2xl font-bold text-red-600">{performance.sla_violations}</div>
+          <div className="text-2xl font-bold text-red-600">{performance.sla_violations ?? 0}</div>
           <div className="text-xs text-gray-600">SLA Violations</div>
         </button>
       </div>
@@ -121,8 +130,8 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
       <div className={`p-4 rounded-lg ${ratingColor}`}>
         <div className="text-center">
           <div className="text-sm font-medium mb-1">Performance Rating</div>
-          <div className="text-2xl font-bold">{performance.performance_rating}</div>
-          <div className="text-sm mt-1">Score: {performance.performance_score}</div>
+          <div className="text-2xl font-bold">{performance.performance_rating ?? 'N/A'}</div>
+          <div className="text-sm mt-1">Score: {performance.performance_score ?? 0}</div>
         </div>
       </div>
     </div>

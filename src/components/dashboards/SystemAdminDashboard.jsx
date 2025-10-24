@@ -137,8 +137,11 @@ export default function SystemAdminDashboard() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveTab('users')}>
-                <div className="text-sm text-gray-600">Total Users</div>
-                <div className="text-3xl font-bold text-gray-900 mt-2">{users.length}</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">Total Users</div>
+                  <div className="text-gray-600">👥</div>
+                </div>
+                <div className="text-3xl font-bold text-gray-900">{users.length}</div>
               </div>
               {Object.entries(roleCounts).map(([role, count]) => (
                 <div key={role} className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {

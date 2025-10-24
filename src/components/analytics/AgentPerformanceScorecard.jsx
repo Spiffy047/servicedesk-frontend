@@ -69,6 +69,18 @@ export default function AgentPerformanceScorecard() {
     )
   }
 
+  if (agents.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">Agent Performance Scorecard</h3>
+        <div className="text-center py-8">
+          <div className="text-gray-400 mb-2">📄</div>
+          <p className="text-gray-600">No agent performance data available</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">Agent Performance Scorecard</h3>

@@ -7,6 +7,13 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * TechnicalSupervisorDashboard - Dashboard for technical supervisors to manage tickets and agents
+ * @param {Object} props - Component props
+ * @param {Object} props.user - User object with name and role
+ * @param {Function} props.onLogout - Logout callback function
+ * @returns {JSX.Element} The rendered supervisor dashboard component
+ */
 export default function TechnicalSupervisorDashboard({ user, onLogout }) {
   const [tickets, setTickets] = useState([])
   const [agentWorkload, setAgentWorkload] = useState([])

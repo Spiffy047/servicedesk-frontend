@@ -107,14 +107,20 @@ export default function NormalUserDashboard({ user }) {
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Pending Tickets', data: tickets.filter(t => t.status === 'Pending') })}>
-            <div className="text-sm text-gray-600">Pending</div>
-            <div className="text-3xl font-bold text-yellow-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">Pending</div>
+              <div className="text-yellow-600">🔄</div>
+            </div>
+            <div className="text-3xl font-bold text-yellow-600">
               {tickets.filter(t => t.status === 'Pending').length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Past SLA Tickets', data: tickets.filter(t => t.sla_violated) })}>
-            <div className="text-sm text-gray-600">Past SLA</div>
-            <div className="text-3xl font-bold text-red-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">Past SLA</div>
+              <div className="text-red-600">⚠️</div>
+            </div>
+            <div className="text-3xl font-bold text-red-600">
               {tickets.filter(t => t.sla_violated).length}
             </div>
           </div>

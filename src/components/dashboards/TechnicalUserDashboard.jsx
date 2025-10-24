@@ -204,7 +204,9 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
         <div className="grid gap-4">
           {displayTickets.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              No tickets found
+              <div className="text-4xl mb-4">📄</div>
+              <p className="text-lg font-medium mb-2">No tickets found</p>
+              <p className="text-sm">There are no tickets to display in this view</p>
             </div>
           ) : (
             displayTickets

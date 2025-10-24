@@ -39,7 +39,7 @@ export default function TicketAgingAnalysis() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'ticket-aging-analysis.csv'
+    a.download = `ticket-aging-analysis-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }

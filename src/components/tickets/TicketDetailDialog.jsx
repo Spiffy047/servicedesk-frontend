@@ -12,14 +12,22 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [agents, setAgents] = useState([])
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    fetchMessages()
-    fetchActivities()
-    fetchAgents()
-    fetchAttachments()
+    const loadData = async () => {
+      setLoading(true)
+      await Promise.all([
+        fetchMessages(),
+        fetchActivities(),
+        fetchAgents(),
+        fetchAttachments()
+      ])
+      setLoading(false)
+    }
+    loadData()
   }, [ticket.id])
 
   useEffect(() => {

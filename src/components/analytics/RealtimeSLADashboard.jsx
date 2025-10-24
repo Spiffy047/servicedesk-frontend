@@ -115,18 +115,30 @@ export default function RealtimeSLADashboard({ onCardClick }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onCardClick?.({ title: 'All Tickets', data: allTickets })}>
+          <button 
+            className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500" 
+            onClick={() => onCardClick?.({ title: 'All Tickets', data: allTickets })}
+            aria-label="View all tickets"
+          >
             <div className="text-sm text-gray-600">Total Tickets</div>
             <div className="text-3xl font-bold text-blue-600">{slaData.overall.total_tickets}</div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onCardClick?.({ title: 'Met SLA (Closed)', data: allTickets.filter(t => t.status === 'Closed' && !t.sla_violated) })}>
+          </button>
+          <button 
+            className="bg-green-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-green-500" 
+            onClick={() => onCardClick?.({ title: 'Met SLA (Closed)', data: allTickets.filter(t => t.status === 'Closed' && !t.sla_violated) })}
+            aria-label="View tickets that met SLA"
+          >
             <div className="text-sm text-gray-600">Met SLA (Closed)</div>
             <div className="text-3xl font-bold text-green-600">{slaData.overall.closed_met_sla}</div>
             <div className="text-xs text-gray-500 mt-1">
               {slaData.overall.closed_adherence_percentage}% adherence
             </div>
-          </div>
-          <div className="bg-red-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onCardClick?.({ title: 'Violated SLA Tickets', data: allTickets.filter(t => t.sla_violated) })}>
+          </button>
+          <button 
+            className="bg-red-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-red-500" 
+            onClick={() => onCardClick?.({ title: 'Violated SLA Tickets', data: allTickets.filter(t => t.sla_violated) })}
+            aria-label="View SLA violated tickets"
+          >
             <div className="text-sm text-gray-600">Violated SLA</div>
             <div className="text-3xl font-bold text-red-600">
               {slaData.overall.closed_violated_sla + slaData.overall.open_violated}
@@ -134,14 +146,18 @@ export default function RealtimeSLADashboard({ onCardClick }) {
             <div className="text-xs text-gray-500 mt-1">
               {slaData.overall.open_violated} currently open
             </div>
-          </div>
-          <div className="bg-amber-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => onCardClick?.({ title: 'At Risk Tickets', data: allTickets.filter(t => t.status !== 'Closed' && !t.sla_violated) })}>
+          </button>
+          <button 
+            className="bg-amber-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-500" 
+            onClick={() => onCardClick?.({ title: 'At Risk Tickets', data: allTickets.filter(t => t.status !== 'Closed' && !t.sla_violated) })}
+            aria-label="View at-risk tickets"
+          >
             <div className="text-sm text-gray-600">At Risk</div>
             <div className="text-3xl font-bold text-amber-600">{slaData.overall.open_at_risk}</div>
             <div className="text-xs text-gray-500 mt-1">
               Open tickets near SLA
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="mb-6">

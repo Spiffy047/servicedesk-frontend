@@ -78,7 +78,7 @@ export default function SLAAdherenceCard() {
       </div>
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-4xl font-bold text-gray-900">{percentage.toFixed(1)}%</div>
+          <div className="text-3xl sm:text-4xl font-bold text-gray-900">{percentage.toFixed(1)}%</div>
           <div className="text-sm text-gray-600 mt-1">
             {data?.met_sla ?? 0} of {data?.total_tickets ?? 0} tickets met SLA
           </div>

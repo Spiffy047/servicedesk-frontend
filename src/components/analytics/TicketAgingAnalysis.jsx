@@ -122,7 +122,7 @@ export default function TicketAgingAnalysis() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} animationDuration={800}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="bucket" />
+              <XAxis dataKey="bucket" tick={{fontSize: 12}} />
               <YAxis tickFormatter={(value) => `${value} tickets`} />
               <Tooltip contentStyle={{backgroundColor: "#f8f9fa", border: "1px solid #e9ecef"}} />
               <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />

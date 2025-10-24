@@ -77,7 +77,7 @@ export default function SystemAdminDashboard() {
   }
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm(`Are you sure you want to delete user "${allUsers.find(u => u.id === userId)?.name}"? This action cannot be undone.`)) {
       try {
         const response = await fetch(`${API_URL}/users/${userId}`, {
           method: 'DELETE'

@@ -122,7 +122,7 @@ export default function TicketAgingAnalysis() {
               <XAxis dataKey="bucket" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count" fill="#10b981" />
+              <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-6 space-y-3">

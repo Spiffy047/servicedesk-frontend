@@ -37,6 +37,14 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }, [messages, activities])
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   const fetchMessages = async () => {
     try {
       const response = await fetch(`${API_URL}/messages/ticket/${ticket.id}/timeline`)

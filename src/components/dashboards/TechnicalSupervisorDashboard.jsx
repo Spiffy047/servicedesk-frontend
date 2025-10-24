@@ -13,6 +13,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [modalData, setModalData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchTickets()
@@ -26,6 +27,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
       const data = await response.json()
       setTickets(data)
     } catch (error) {
+      setError('Failed to load tickets')
       console.error('Failed to fetch tickets:', error)
     } finally {
       setLoading(false)

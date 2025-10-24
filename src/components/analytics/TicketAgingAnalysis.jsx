@@ -151,7 +151,7 @@ export default function TicketAgingAnalysis() {
                           <div className="flex-1">
                             <span className="font-medium text-blue-600">#{ticket.id}</span>
                             <span className="text-gray-600 ml-2">{ticket.title}</span>
-                            <span className="text-gray-500 ml-2 text-xs">({formatHoursOpen(hoursOpen)} open)</span>
+                            <span className="text-gray-500 ml-2 text-xs">⏱️ {formatHoursOpen(hoursOpen)} open</span>
                           </div>
                           <div className="flex gap-2 flex-wrap">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${

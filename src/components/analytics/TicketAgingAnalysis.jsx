@@ -14,6 +14,8 @@ export default function TicketAgingAnalysis() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState('created_at')
+  const [sortOrder, setSortOrder] = useState('desc')
 
   const exportData = () => {
     const csvData = Object.entries(agingData || {}).flatMap(([bucket, data]) => 

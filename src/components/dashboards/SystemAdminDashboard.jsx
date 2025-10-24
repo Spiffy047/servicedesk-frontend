@@ -263,6 +263,11 @@ export default function SystemAdminDashboard() {
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">{editingUser ? 'Edit User' : 'Add User'}</h2>
               <form onSubmit={handleSaveUser} className="space-y-4">
+                {formError && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
+                    {formError}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input

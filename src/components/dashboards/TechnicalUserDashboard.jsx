@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import AgentPerformanceCard from '../analytics/AgentPerformanceCard'
 import TicketDetailDialog from '../tickets/TicketDetailDialog'
 import DataModal from '../common/DataModal'
@@ -271,4 +272,13 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
     </div>
   )
+}
+
+TechnicalUserDashboard.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired
+  }).isRequired,
+  onLogout: PropTypes.func.isRequired
 }

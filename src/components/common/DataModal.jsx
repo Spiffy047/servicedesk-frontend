@@ -71,7 +71,9 @@ export default function DataModal({ title, data, onClose }) {
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b">
           <div className="flex justify-between items-center mb-4">
-            <h2 id="modal-title" className="text-xl font-bold">{title}</h2>
+            <h2 id="modal-title" className="text-xl font-bold">
+              {title} ({filteredData.length} {filteredData.length === 1 ? 'item' : 'items'})
+            </h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={exportToCSV}

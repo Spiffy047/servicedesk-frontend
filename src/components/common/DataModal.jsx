@@ -1,19 +1,38 @@
+import { useState } from 'react'
 import PropTypes from 'prop-types'
 
 export default function DataModal({ title, data, onClose }) {
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const filteredData = data.filter(item => 
+    !searchTerm || 
+    (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.id && item.id.toString().includes(searchTerm))
+  )
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-bold">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div className="p-6 border-b">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">{title}</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          </div>
+          <input
+            type="text"
+            placeholder="Search data..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
         </div>
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
-          {data.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">No data available</div>
+          {filteredData.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">{data.length === 0 ? 'No data available' : 'No matching results'}</div>
           ) : (
             <div className="space-y-3">
-              {data.map((item, idx) => (
+              {filteredData.map((item, idx) => (
                 <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
                   <div className="flex justify-between items-start mb-2">
                     <div className="font-semibold text-lg">{item.id || item.title}</div>

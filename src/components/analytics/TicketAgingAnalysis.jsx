@@ -54,7 +54,7 @@ export default function TicketAgingAnalysis() {
       })
       .then(setAgingData)
       .catch(err => {
-        setError(err.message)
+        setError(`Failed to load aging data: ${err.message}`)
         console.error(err)
       })
       .finally(() => {

@@ -102,7 +102,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <button 
-          className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md hover:bg-blue-100 transition-all duration-200 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
           onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
           onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
           aria-label="View active tickets"
@@ -111,7 +111,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           <div className="text-xs text-gray-600">Active Tickets</div>
         </button>
         <button 
-          className="text-center p-3 bg-green-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-green-500" 
+          className="text-center p-3 bg-green-50 rounded cursor-pointer hover:shadow-md hover:bg-green-100 transition-all duration-200 w-full focus:outline-none focus:ring-2 focus:ring-green-500" 
           onClick={() => onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
           onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
           aria-label="View closed tickets"
@@ -119,12 +119,12 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           <div className="text-xl sm:text-2xl font-bold text-green-600">{performance.closed_tickets ?? 0}</div>
           <div className="text-xs text-gray-600">Closed Tickets</div>
         </button>
-        <div className="text-center p-3 bg-purple-50 rounded">
+        <div className="text-center p-3 bg-purple-50 rounded hover:bg-purple-100 transition-colors duration-200">
           <div className="text-xl sm:text-2xl font-bold text-purple-600">{performance.avg_handle_time ?? 0}h</div>
           <div className="text-xs text-gray-600">Avg Handle Time</div>
         </div>
         <button 
-          className="text-center p-3 bg-red-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-red-500" 
+          className="text-center p-3 bg-red-50 rounded cursor-pointer hover:shadow-md hover:bg-red-100 transition-all duration-200 w-full focus:outline-none focus:ring-2 focus:ring-red-500" 
           onClick={() => onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
           onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
           aria-label="View SLA violations"
@@ -134,7 +134,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         </button>
       </div>
 
-      <div className={`p-4 rounded-lg ${ratingColor}`}>
+      <div className={`p-4 rounded-lg transition-all duration-300 ${ratingColor}`}>
         <div className="text-center">
           <div className="text-sm font-medium mb-1">Performance Rating</div>
           <div className="text-xl sm:text-2xl font-bold">{performance.performance_rating ?? 'N/A'}</div>

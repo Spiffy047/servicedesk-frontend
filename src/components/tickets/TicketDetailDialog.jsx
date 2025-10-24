@@ -89,6 +89,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
+    
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    const allowedTypes = ['image/', 'application/pdf', 'text/', 'application/msword']
+    
+    if (file.size > maxSize) {
+      setError('File size must be less than 10MB')
+      return
+    }
+    
+    if (!allowedTypes.some(type => file.type.startsWith(type))) {
+      setError('File type not supported')
+      return
+    }
 
     setUploading(true)
     const formData = new FormData()

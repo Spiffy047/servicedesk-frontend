@@ -34,13 +34,45 @@ export default function DataModal({ title, data, onClose }) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
   
+  const exportToCSV = () => {
+    const headers = ['ID', 'Title', 'Status', 'Priority', 'Created', 'Assigned']
+    const csvData = filteredData.map(item => [
+      item.id || '',
+      item.title || '',
+      item.status || '',
+      item.priority || '',
+      item.created_at ? new Date(item.created_at).toLocaleDateString() : '',
+      item.assigned_to || ''
+    ])
+    
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${title.replace(/\s+/g, '_')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b">
           <div className="flex justify-between items-center mb-4">
             <h2 id="modal-title" className="text-xl font-bold">{title}</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={exportToCSV}
+                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+              >
+                Export CSV
+              </button>
+              <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
           </div>
           <div className="flex gap-3">
             <input

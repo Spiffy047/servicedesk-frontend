@@ -12,7 +12,9 @@ export default function SLAAdherenceCard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
+    setError(null)
     fetch(`${API_URL}/tickets/analytics/sla-adherence`)
       .then(res => res.json())
       .then(setData)
@@ -21,6 +23,10 @@ export default function SLAAdherenceCard() {
         console.error(err)
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
 
   if (loading) {
@@ -59,7 +65,17 @@ export default function SLAAdherenceCard() {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">SLA Adherence</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">SLA Adherence</h3>
+        <button 
+          onClick={fetchData}
+          disabled={loading}
+          className="text-gray-500 hover:text-gray-700 disabled:opacity-50 p-1 rounded"
+          title="Refresh data"
+        >
+          🔄
+        </button>
+      </div>
       <div className="flex items-center justify-between">
         <div>
           <div className="text-4xl font-bold text-gray-900">{percentage.toFixed(1)}%</div>

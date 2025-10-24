@@ -81,8 +81,8 @@ export default function TicketAgingAnalysis() {
           <div className="mt-6 space-y-3">
             {Object.entries(agingData || {}).map(([bucket, data]) => (
               (data?.count ?? 0) > 0 && (
-                <details key={bucket} className="border rounded-lg">
-                  <summary className="px-4 py-3 cursor-pointer hover:bg-gray-50 font-medium flex justify-between">
+                <details key={bucket} className="border rounded-lg hover:shadow-md transition-shadow duration-200">
+                  <summary className="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-200 font-medium flex justify-between">
                     <span>{bucket}</span>
                     <span className="text-gray-600">{data?.count ?? 0} tickets</span>
                   </summary>

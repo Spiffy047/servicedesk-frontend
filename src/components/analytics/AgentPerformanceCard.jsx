@@ -92,8 +92,9 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         <button 
           onClick={fetchPerformance}
           disabled={loading}
-          className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+          className="text-gray-500 hover:text-gray-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
           title="Refresh data"
+          onKeyDown={(e) => e.key === 'Enter' && !loading && fetchPerformance()}
         >
           🔄
         </button>
@@ -103,6 +104,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         <button 
           className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
           onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
+          onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
           aria-label="View active tickets"
         >
           <div className="text-2xl font-bold text-blue-600">{performance.active_tickets ?? 0}</div>
@@ -111,6 +113,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         <button 
           className="text-center p-3 bg-green-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-green-500" 
           onClick={() => onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
+          onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
           aria-label="View closed tickets"
         >
           <div className="text-2xl font-bold text-green-600">{performance.closed_tickets ?? 0}</div>
@@ -123,6 +126,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         <button 
           className="text-center p-3 bg-red-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-red-500" 
           onClick={() => onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
+          onKeyDown={(e) => e.key === 'Enter' && onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
           aria-label="View SLA violations"
         >
           <div className="text-2xl font-bold text-red-600">{performance.sla_violations ?? 0}</div>

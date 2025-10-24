@@ -56,7 +56,10 @@ export default function TicketAgingAnalysis() {
         setError(err.message)
         console.error(err)
       })
-      .finally(() => setLoading(false))
+      .finally(() => {
+        setLoading(false)
+        console.log('Aging data loaded successfully')
+      })
   }
 
   useEffect(() => {

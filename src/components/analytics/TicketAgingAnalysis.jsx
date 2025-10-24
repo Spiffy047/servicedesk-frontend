@@ -109,7 +109,7 @@ export default function TicketAgingAnalysis() {
         <h3 className="text-lg font-semibold">Ticket Aging Analysis</h3>
         <button 
           onClick={exportData}
-          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors duration-200"
         >
           📊 Export CSV
         </button>

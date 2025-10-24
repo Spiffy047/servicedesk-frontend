@@ -161,12 +161,12 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const canEdit = currentUser.role !== 'Normal User' || (currentUser.role === 'Normal User' && ticket.created_by === currentUser.id && ticket.status !== 'Closed')
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="ticket-title">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         <div className="p-6 border-b">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{ticket.title}</h2>
+              <h2 id="ticket-title" className="text-2xl font-bold text-gray-900">{ticket.title}</h2>
               <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
             </div>
             <div className="flex items-center gap-2">

@@ -23,9 +23,9 @@ export default function TicketAgingAnalysis() {
       .finally(() => setLoading(false))
   }, [])
 
-  const chartData = Object.entries(agingData).map(([bucket, data]) => ({
+  const chartData = Object.entries(agingData || {}).map(([bucket, data]) => ({
     bucket,
-    count: data.count
+    count: data?.count ?? 0
   }))
 
   if (error) {
@@ -77,15 +77,15 @@ export default function TicketAgingAnalysis() {
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-6 space-y-3">
-            {Object.entries(agingData).map(([bucket, data]) => (
-              data.count > 0 && (
+            {Object.entries(agingData || {}).map(([bucket, data]) => (
+              (data?.count ?? 0) > 0 && (
                 <details key={bucket} className="border rounded-lg">
                   <summary className="px-4 py-3 cursor-pointer hover:bg-gray-50 font-medium flex justify-between">
                     <span>{bucket}</span>
-                    <span className="text-gray-600">{data.count} tickets</span>
+                    <span className="text-gray-600">{data?.count ?? 0} tickets</span>
                   </summary>
                   <div className="px-4 py-3 border-t bg-gray-50 space-y-2">
-                    {data.tickets.map(ticket => {
+                    {(data?.tickets || []).map(ticket => {
                       const hoursOpen = calculateHoursOpen(ticket.created_at)
                       return (
                         <div key={ticket.id} className="flex justify-between items-center text-sm">

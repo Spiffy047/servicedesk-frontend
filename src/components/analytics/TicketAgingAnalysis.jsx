@@ -163,8 +163,8 @@ export default function TicketAgingAnalysis() {
                               {ticket.priority}
                             </span>
                             {ticket.sla_violated && (
-                              <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                                SLA Violated
+                              <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                                ⚠️ SLA Violated
                               </span>
                             )}
                           </div>

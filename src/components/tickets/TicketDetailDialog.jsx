@@ -112,7 +112,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!newMessage.trim()) return
+    if (!newMessage.trim() || newMessage.length > 1000) return
 
     try {
       const response = await fetch(`${API_URL}/messages`, {
@@ -361,6 +361,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
               placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows="3"
+              maxLength={1000}
             />
             <div className="flex flex-col gap-2">
               <input

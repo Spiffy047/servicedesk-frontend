@@ -63,7 +63,7 @@ export default function TicketAgingAnalysis() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <h3 className="text-lg font-semibold mb-4">Ticket Aging Analysis</h3>
       {chartData.length > 0 ? (
         <>
@@ -88,13 +88,13 @@ export default function TicketAgingAnalysis() {
                     {(data?.tickets || []).map(ticket => {
                       const hoursOpen = calculateHoursOpen(ticket.created_at)
                       return (
-                        <div key={ticket.id} className="flex justify-between items-center text-sm">
+                        <div key={ticket.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">
                           <div className="flex-1">
                             <span className="font-medium">{ticket.id}</span>
                             <span className="text-gray-600 ml-2">{ticket.title}</span>
                             <span className="text-gray-500 ml-2 text-xs">({formatHoursOpen(hoursOpen)} open)</span>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
                               ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
                               ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :

@@ -52,7 +52,13 @@ export default function SLAAdherenceCard() {
         <h3 className="text-lg font-semibold mb-4">SLA Adherence</h3>
         <div className="text-center py-4">
           <div className="text-red-500 mb-2">⚠️</div>
-          <p className="text-gray-600 text-sm">{error}</p>
+          <p className="text-gray-600 text-sm mb-3">{error}</p>
+          <button 
+            onClick={fetchData}
+            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
         </div>
       </div>
     )

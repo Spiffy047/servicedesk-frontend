@@ -13,6 +13,7 @@ export default function AgentPerformanceScorecard() {
   const [error, setError] = useState(null)
   const [sortBy, setSortBy] = useState('performance_score')
   const [sortOrder, setSortOrder] = useState('desc')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetch(`${API_URL}/analytics/agent-performance-detailed`)
@@ -37,13 +38,17 @@ export default function AgentPerformanceScorecard() {
     }
   }
 
-  const sortedAgents = useMemo(() => {
-    return [...agents].sort((a, b) => {
+  const filteredAndSortedAgents = useMemo(() => {
+    const filtered = agents.filter(agent => 
+      (agent.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (agent.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    return filtered.sort((a, b) => {
       const aVal = a[sortBy] ?? 0
       const bVal = b[sortBy] ?? 0
       return sortOrder === 'desc' ? bVal - aVal : aVal - bVal
     })
-  }, [agents, sortBy, sortOrder])
+  }, [agents, sortBy, sortOrder, searchTerm])
 
   if (error) {
     return (
@@ -98,9 +103,17 @@ export default function AgentPerformanceScorecard() {
 
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <h3 className="text-base sm:text-lg font-semibold">Agent Performance Scorecard</h3>
-        <select 
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Search agents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="text-sm border rounded px-2 py-1 w-40"
+          />
+          <select 
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
           className="text-sm border rounded px-2 py-1 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -110,9 +123,10 @@ export default function AgentPerformanceScorecard() {
           <option value="active_tickets">Active Tickets</option>
           <option value="avg_handle_time">Handle Time</option>
         </select>
+        </div>
       </div>
       <div className="space-y-4">
-        {sortedAgents.map(agent => (
+        {filteredAndSortedAgents.map(agent => (
           <div key={agent.agent_id} className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow duration-200">
             <div className="flex justify-between items-start mb-3">
               <div>

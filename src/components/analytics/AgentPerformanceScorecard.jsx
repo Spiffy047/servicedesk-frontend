@@ -96,7 +96,7 @@ export default function AgentPerformanceScorecard() {
         <select 
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
-          className="text-sm border rounded px-2 py-1"
+          className="text-sm border rounded px-2 py-1 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="performance_score">Score</option>
           <option value="closed_tickets">Closed Tickets</option>
@@ -106,7 +106,7 @@ export default function AgentPerformanceScorecard() {
       </div>
       <div className="space-y-4">
         {sortedAgents.map(agent => (
-          <div key={agent.agent_id} className="border rounded-lg p-3 sm:p-4">
+          <div key={agent.agent_id} className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow duration-200">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h4 className="font-semibold text-gray-900">{agent.name || 'Unknown Agent'}</h4>

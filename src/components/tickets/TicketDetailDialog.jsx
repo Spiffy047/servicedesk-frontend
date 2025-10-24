@@ -150,6 +150,8 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   }
 
   const handleSaveChanges = async () => {
+    if (!confirm('Are you sure you want to save these changes?')) return
+    
     try {
       await fetch(`${API_URL}/tickets/${ticket.id}`, {
         method: 'PUT',

@@ -13,6 +13,7 @@ export default function TicketAgingAnalysis() {
   const [agingData, setAgingData] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchData = () => {
     setLoading(true)
@@ -97,7 +98,10 @@ export default function TicketAgingAnalysis() {
                     <span className="text-gray-600">{data?.count ?? 0} tickets</span>
                   </summary>
                   <div className="px-4 py-3 border-t bg-gray-50 space-y-2">
-                    {(data?.tickets || []).map(ticket => {
+                    {(data?.tickets || []).filter(ticket => 
+                      ticket.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      ticket.id?.toString().includes(searchTerm)
+                    ).map(ticket => {
                       const hoursOpen = calculateHoursOpen(ticket.created_at)
                       return (
                         <div key={ticket.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-2">

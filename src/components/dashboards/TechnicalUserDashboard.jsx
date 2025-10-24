@@ -134,14 +134,20 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
-            <div className="text-sm text-gray-600">Total Tickets</div>
-            <div className="text-3xl font-bold text-gray-900 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">Total Tickets</div>
+              <div className="text-gray-600">🎫</div>
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
               {tickets.length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Breached Tickets', data: tickets.filter(t => t.sla_violated) })}>
-            <div className="text-sm text-gray-600">SLA Breached</div>
-            <div className="text-3xl font-bold text-red-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">SLA Breached</div>
+              <div className="text-red-600">⚠️</div>
+            </div>
+            <div className="text-3xl font-bold text-red-600">
               {tickets.filter(t => t.sla_violated).length}
             </div>
           </div>

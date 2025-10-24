@@ -10,6 +10,7 @@ export default function NormalUserDashboard({ user }) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [modalData, setModalData] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchTickets()
@@ -22,6 +23,7 @@ export default function NormalUserDashboard({ user }) {
       const data = await response.json()
       setTickets(data)
     } catch (error) {
+      setError('Failed to load tickets')
       console.error('Failed to fetch tickets:', error)
     } finally {
       setLoading(false)

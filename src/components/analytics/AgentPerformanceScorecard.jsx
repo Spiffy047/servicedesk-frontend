@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
@@ -33,11 +33,13 @@ export default function AgentPerformanceScorecard() {
     }
   }
 
-  const sortedAgents = [...agents].sort((a, b) => {
-    const aVal = a[sortBy] ?? 0
-    const bVal = b[sortBy] ?? 0
-    return sortOrder === 'desc' ? bVal - aVal : aVal - bVal
-  })
+  const sortedAgents = useMemo(() => {
+    return [...agents].sort((a, b) => {
+      const aVal = a[sortBy] ?? 0
+      const bVal = b[sortBy] ?? 0
+      return sortOrder === 'desc' ? bVal - aVal : aVal - bVal
+    })
+  }, [agents, sortBy, sortOrder])
 
   if (error) {
     return (

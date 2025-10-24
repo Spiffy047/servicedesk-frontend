@@ -20,6 +20,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
   const [allTickets, setAllTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true)
 
   useEffect(() => {
     fetchSLAData()
@@ -108,8 +109,14 @@ export default function RealtimeSLADashboard({ onCardClick }) {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Real-Time SLA Adherence</h3>
           <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-500">
-              Last updated: {lastUpdate?.toLocaleTimeString()}
+            <div className="text-sm text-gray-500 flex items-center gap-2">
+              <span>Last updated: {lastUpdate?.toLocaleTimeString()}</span>
+              {isAutoRefreshing && (
+                <span className="flex items-center gap-1 text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Auto-refresh
+                </span>
+              )}
             </div>
             <button 
               onClick={fetchSLAData}

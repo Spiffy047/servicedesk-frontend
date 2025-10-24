@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * SLAAdherenceCard displays SLA adherence metrics with visual indicators
+ * @returns {JSX.Element} The rendered SLA adherence card component
+ */
 export default function SLAAdherenceCard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)

@@ -5,6 +5,8 @@ export default function DataModal({ title, data, onClose }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('id')
   const [sortOrder, setSortOrder] = useState('asc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
   
   const filteredData = data.filter(item => 
     !searchTerm || 
@@ -17,6 +19,12 @@ export default function DataModal({ title, data, onClose }) {
     const result = aVal.toString().localeCompare(bVal.toString())
     return sortOrder === 'asc' ? result : -result
   })
+  
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
   
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -64,8 +72,9 @@ export default function DataModal({ title, data, onClose }) {
           {filteredData.length === 0 ? (
             <div className="text-center text-gray-500 py-8">{data.length === 0 ? 'No data available' : 'No matching results'}</div>
           ) : (
-            <div className="space-y-3">
-              {filteredData.map((item, idx) => (
+            <>
+              <div className="space-y-3">
+                {paginatedData.map((item, idx) => (
                 <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
                   <div className="flex justify-between items-start mb-2">
                     <div className="font-semibold text-lg">{item.id || item.title}</div>
@@ -103,7 +112,29 @@ export default function DataModal({ title, data, onClose }) {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-6 pt-4 border-t">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border rounded disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-3 py-1">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border rounded disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

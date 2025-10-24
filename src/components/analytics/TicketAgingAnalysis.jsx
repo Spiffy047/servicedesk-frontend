@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import PropTypes from 'prop-types'
 import { calculateHoursOpen, formatHoursOpen } from '../../utils/ticketUtils'
@@ -24,10 +24,11 @@ export default function TicketAgingAnalysis() {
       .finally(() => setLoading(false))
   }, [])
 
-  const chartData = Object.entries(agingData || {}).map(([bucket, data]) => ({
-    bucket,
-    count: data?.count ?? 0
-  }))
+  const chartData = useMemo(() => 
+    Object.entries(agingData || {}).map(([bucket, data]) => ({
+      bucket,
+      count: data?.count ?? 0
+    })), [agingData])
 
   if (error) {
     return (

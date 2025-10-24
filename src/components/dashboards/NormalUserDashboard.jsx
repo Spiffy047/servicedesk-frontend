@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import TicketDetailDialog from '../tickets/TicketDetailDialog'
 import DataModal from '../common/DataModal'
 
@@ -292,4 +293,11 @@ export default function NormalUserDashboard({ user }) {
       {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
     </div>
   )
+}
+
+NormalUserDashboard.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired
+  }).isRequired
 }

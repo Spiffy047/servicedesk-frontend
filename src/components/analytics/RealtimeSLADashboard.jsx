@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 const API_URL = 'http://localhost:5002/api'
 
 export default function RealtimeSLADashboard({ onCardClick }) {
+  // PropTypes will be defined at the end of the file
   const [slaData, setSlaData] = useState(null)
   const [lastUpdate, setLastUpdate] = useState(null)
   const [allTickets, setAllTickets] = useState([])
@@ -276,4 +277,8 @@ export default function RealtimeSLADashboard({ onCardClick }) {
       </div>
     </div>
   )
+}
+
+RealtimeSLADashboard.propTypes = {
+  onCardClick: PropTypes.func
 }

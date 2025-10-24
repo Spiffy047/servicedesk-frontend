@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
@@ -8,7 +8,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchPerformance = () => {
+  const fetchPerformance = useCallback(() => {
     if (!agentId) return
     
     setLoading(true)
@@ -36,11 +36,11 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         console.error(err)
       })
       .finally(() => setLoading(false))
-  }
+  }, [agentId])
 
   useEffect(() => {
     fetchPerformance()
-  }, [agentId])
+  }, [fetchPerformance])
 
   if (loading) {
     return (
@@ -77,11 +77,13 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
 
   if (!performance) return null
 
-  const ratingColor = 
-    performance.performance_rating === 'Excellent' ? 'text-green-600 bg-green-50' :
-    performance.performance_rating === 'Good' ? 'text-blue-600 bg-blue-50' :
-    performance.performance_rating === 'Average' ? 'text-yellow-600 bg-yellow-50' :
-    'text-red-600 bg-red-50'
+  const ratingColor = useMemo(() => {
+    const rating = performance?.performance_rating
+    return rating === 'Excellent' ? 'text-green-600 bg-green-50' :
+           rating === 'Good' ? 'text-blue-600 bg-blue-50' :
+           rating === 'Average' ? 'text-yellow-600 bg-yellow-50' :
+           'text-red-600 bg-red-50'
+  }, [performance?.performance_rating])
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

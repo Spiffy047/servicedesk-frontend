@@ -20,6 +20,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
   const [modalData, setModalData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [updatingTicket, setUpdatingTicket] = useState(null)
 
   useEffect(() => {
     fetchTickets()
@@ -40,6 +41,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
   }
 
   const handleStatusUpdate = async (ticketId, newStatus) => {
+    setUpdatingTicket(ticketId)
     try {
       const response = await fetch(`${API_URL}/tickets/${ticketId}/status`, {
         method: 'PUT',
@@ -52,6 +54,8 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       }
     } catch (error) {
       console.error('Failed to update ticket status:', error)
+    } finally {
+      setUpdatingTicket(null)
     }
   }
 

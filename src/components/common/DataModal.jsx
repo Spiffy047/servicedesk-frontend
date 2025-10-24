@@ -8,13 +8,18 @@ export default function DataModal({ title, data, onClose }) {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
   const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('all')
   
-  const filteredData = data.filter(item => 
-    !searchTerm || 
-    (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (item.id && item.id.toString().includes(searchTerm))
-  ).sort((a, b) => {
+  const filteredData = data.filter(item => {
+    const matchesSearch = !searchTerm || 
+      (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.id && item.id.toString().includes(searchTerm))
+    
+    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
+    
+    return matchesSearch && matchesStatus
+  }).sort((a, b) => {
     const aVal = a[sortBy] || ''
     const bVal = b[sortBy] || ''
     const result = aVal.toString().localeCompare(bVal.toString())
@@ -95,6 +100,17 @@ export default function DataModal({ title, data, onClose }) {
               <option value="title">Sort by Title</option>
               <option value="created_at">Sort by Date</option>
               <option value="status">Sort by Status</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border rounded-md"
+            >
+              <option value="all">All Status</option>
+              <option value="Open">Open</option>
+              <option value="Closed">Closed</option>
+              <option value="Pending">Pending</option>
+              <option value="New">New</option>
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}

@@ -3,6 +3,20 @@ import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
+const formatRelativeTime = (date) => {
+  const now = new Date()
+  const diff = now - new Date(date)
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return new Date(date).toLocaleDateString()
+}
+
 export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpdate }) {
   const [messages, setMessages] = useState([])
   const [activities, setActivities] = useState([])
@@ -336,8 +350,8 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                               {item.sender_role}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-500">
-                            {new Date(item.timestamp).toLocaleString()}
+                          <span className="text-xs text-gray-500" title={new Date(item.timestamp).toLocaleString()}>
+                            {formatRelativeTime(item.timestamp)}
                           </span>
                         </div>
                         <p className="text-gray-700">{item.message}</p>

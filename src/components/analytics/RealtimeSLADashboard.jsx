@@ -13,6 +13,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
   const [lastUpdate, setLastUpdate] = useState(null)
   const [allTickets, setAllTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchSLAData()
@@ -23,20 +24,44 @@ export default function RealtimeSLADashboard({ onCardClick }) {
   const fetchSLAData = async () => {
     try {
       setLoading(true)
+      setError(null)
       const [slaResponse, ticketsResponse] = await Promise.all([
         fetch(`${API_URL}/sla/realtime-adherence`),
         fetch(`${API_URL}/tickets`)
       ])
+      
+      if (!slaResponse.ok || !ticketsResponse.ok) {
+        throw new Error('Failed to fetch SLA data')
+      }
+      
       const data = await slaResponse.json()
       const tickets = await ticketsResponse.json()
       setSlaData(data)
       setAllTickets(tickets)
       setLastUpdate(new Date())
     } catch (err) {
+      setError(err.message)
       console.error('Failed to fetch SLA data:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center py-8">
+          <div className="text-red-500 mb-2">⚠️</div>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchSLAData}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (loading || !slaData) {

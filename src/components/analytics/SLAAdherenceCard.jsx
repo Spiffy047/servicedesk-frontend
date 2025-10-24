@@ -5,12 +5,16 @@ const API_URL = 'http://localhost:5002/api'
 export default function SLAAdherenceCard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetch(`${API_URL}/tickets/analytics/sla-adherence`)
       .then(res => res.json())
       .then(setData)
-      .catch(console.error)
+      .catch(err => {
+        setError('Failed to load SLA data')
+        console.error(err)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -26,6 +30,18 @@ export default function SLAAdherenceCard() {
             </div>
             <div className="w-24 h-24 bg-gray-200 rounded-full"></div>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">SLA Adherence</h3>
+        <div className="text-center py-4">
+          <div className="text-red-500 mb-2">⚠️</div>
+          <p className="text-gray-600 text-sm">{error}</p>
         </div>
       </div>
     )

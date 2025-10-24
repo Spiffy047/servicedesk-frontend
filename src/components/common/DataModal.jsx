@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 export default function DataModal({ title, data, onClose }) {
@@ -10,6 +10,14 @@ export default function DataModal({ title, data, onClose }) {
     (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (item.id && item.id.toString().includes(searchTerm))
   )
+  
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>

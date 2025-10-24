@@ -22,7 +22,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
     return () => clearInterval(interval)
   }, [])
 
-  const fetchSLAData = async () => {
+  const fetchSLAData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -46,7 +46,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   if (error) {
     return (
@@ -81,19 +81,21 @@ export default function RealtimeSLADashboard({ onCardClick }) {
     )
   }
 
-  const priorityChartData = Object.entries(slaData.priority_breakdown).map(([priority, data]) => ({
-    priority,
-    'Met SLA': data.met_sla,
-    'Violated SLA': data.violated_sla,
-    adherence: data.adherence_percentage
-  }))
+  const priorityChartData = useMemo(() => 
+    Object.entries(slaData?.priority_breakdown || {}).map(([priority, data]) => ({
+      priority,
+      'Met SLA': data.met_sla,
+      'Violated SLA': data.violated_sla,
+      adherence: data.adherence_percentage
+    })), [slaData])
 
-  const timeAnalysisData = Object.entries(slaData.time_analysis || {}).map(([period, data]) => ({
-    period: period.replace('last_', '').replace('h', ' hours').replace('d', ' days'),
-    'Met SLA': data.met_sla,
-    'Violated': data.violated_sla,
-    adherence: data.adherence_percentage
-  }))
+  const timeAnalysisData = useMemo(() => 
+    Object.entries(slaData?.time_analysis || {}).map(([period, data]) => ({
+      period: period.replace('last_', '').replace('h', ' hours').replace('d', ' days'),
+      'Met SLA': data.met_sla,
+      'Violated': data.violated_sla,
+      adherence: data.adherence_percentage
+    })), [slaData])
 
   return (
     <div className="space-y-6">

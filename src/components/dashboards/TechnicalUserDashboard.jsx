@@ -125,8 +125,11 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'My Assigned Tickets', data: myTickets })}>
-            <div className="text-sm text-gray-600">Assigned Tickets</div>
-            <div className="text-3xl font-bold text-blue-600 mt-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">Assigned Tickets</div>
+              <div className="text-blue-600">💼</div>
+            </div>
+            <div className="text-3xl font-bold text-blue-600">
               {myTickets.length}
             </div>
           </div>

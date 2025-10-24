@@ -202,6 +202,11 @@ export default function NormalUserDashboard({ user }) {
               </div>
 
               <form onSubmit={handleCreateTicket} className="space-y-4">
+                {createError && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
+                    {createError}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Title <span className="text-red-500">*</span>

@@ -18,6 +18,8 @@ export default function SystemAdminDashboard() {
   const [editingUser, setEditingUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [formError, setFormError] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -42,6 +44,9 @@ export default function SystemAdminDashboard() {
     e.preventDefault()
     const formData = new FormData(e.target)
     
+    setSaving(true)
+    setFormError(null)
+    
     const userData = {
       name: formData.get('name'),
       email: formData.get('email'),
@@ -64,7 +69,10 @@ export default function SystemAdminDashboard() {
         fetchUsers()
       }
     } catch (error) {
+      setFormError('Failed to save user. Please try again.')
       console.error('Failed to save user:', error)
+    } finally {
+      setSaving(false)
     }
   }
 

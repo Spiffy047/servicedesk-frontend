@@ -88,22 +88,34 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
       </div>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md transition-shadow" onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}>
+        <button 
+          className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
+          aria-label="View active tickets"
+        >
           <div className="text-2xl font-bold text-blue-600">{performance.active_tickets}</div>
           <div className="text-xs text-gray-600">Active Tickets</div>
-        </div>
-        <div className="text-center p-3 bg-green-50 rounded cursor-pointer hover:shadow-md transition-shadow" onClick={() => onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}>
+        </button>
+        <button 
+          className="text-center p-3 bg-green-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-green-500" 
+          onClick={() => onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
+          aria-label="View closed tickets"
+        >
           <div className="text-2xl font-bold text-green-600">{performance.closed_tickets}</div>
           <div className="text-xs text-gray-600">Closed Tickets</div>
-        </div>
+        </button>
         <div className="text-center p-3 bg-purple-50 rounded">
           <div className="text-2xl font-bold text-purple-600">{performance.avg_handle_time}h</div>
           <div className="text-xs text-gray-600">Avg Handle Time</div>
         </div>
-        <div className="text-center p-3 bg-red-50 rounded cursor-pointer hover:shadow-md transition-shadow" onClick={() => onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}>
+        <button 
+          className="text-center p-3 bg-red-50 rounded cursor-pointer hover:shadow-md transition-shadow w-full focus:outline-none focus:ring-2 focus:ring-red-500" 
+          onClick={() => onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
+          aria-label="View SLA violations"
+        >
           <div className="text-2xl font-bold text-red-600">{performance.sla_violations}</div>
           <div className="text-xs text-gray-600">SLA Violations</div>
-        </div>
+        </button>
       </div>
 
       <div className={`p-4 rounded-lg ${ratingColor}`}>

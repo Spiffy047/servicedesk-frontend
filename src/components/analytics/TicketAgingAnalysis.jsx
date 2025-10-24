@@ -5,6 +5,10 @@ import { calculateHoursOpen, formatHoursOpen } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * TicketAgingAnalysis displays aging analysis of tickets with interactive breakdown
+ * @returns {JSX.Element} The rendered ticket aging analysis component
+ */
 export default function TicketAgingAnalysis() {
   const [agingData, setAgingData] = useState({})
   const [loading, setLoading] = useState(true)

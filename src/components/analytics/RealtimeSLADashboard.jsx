@@ -1,10 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-
-const API_URL = 'http://localhost:5002/api'
-
-export default function RealtimeSLADashboard({ onCaimport { useEffect, useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
@@ -21,12 +17,6 @@ export default function RealtimeSLADashboard({ onCardClick }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true)
-
-  useEffect(() => {
-    fetchSLAData()
-    const interval = setInterval(fetchSLAData, 30000) // Update every 30 seconds
-    return () => clearInterval(interval)
-  }, [])
 
   const fetchSLAData = useCallback(async () => {
     try {
@@ -53,6 +43,28 @@ export default function RealtimeSLADashboard({ onCardClick }) {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    fetchSLAData()
+    const interval = setInterval(fetchSLAData, 30000)
+    return () => clearInterval(interval)
+  }, [fetchSLAData])
+
+  const priorityChartData = useMemo(() => 
+    Object.entries(slaData?.priority_breakdown || {}).map(([priority, data]) => ({
+      priority,
+      'Met SLA': data.met_sla,
+      'Violated SLA': data.violated_sla,
+      adherence: data.adherence_percentage
+    })), [slaData])
+
+  const timeAnalysisData = useMemo(() => 
+    Object.entries(slaData?.time_analysis || {}).map(([period, data]) => ({
+      period: period.replace('last_', '').replace('h', ' hours').replace('d', ' days'),
+      'Met SLA': data.met_sla,
+      'Violated': data.violated_sla,
+      adherence: data.adherence_percentage
+    })), [slaData])
 
   if (error) {
     return (
@@ -87,22 +99,6 @@ export default function RealtimeSLADashboard({ onCardClick }) {
     )
   }
 
-  const priorityChartData = useMemo(() => 
-    Object.entries(slaData?.priority_breakdown || {}).map(([priority, data]) => ({
-      priority,
-      'Met SLA': data.met_sla,
-      'Violated SLA': data.violated_sla,
-      adherence: data.adherence_percentage
-    })), [slaData])
-
-  const timeAnalysisData = useMemo(() => 
-    Object.entries(slaData?.time_analysis || {}).map(([period, data]) => ({
-      period: period.replace('last_', '').replace('h', ' hours').replace('d', ' days'),
-      'Met SLA': data.met_sla,
-      'Violated': data.violated_sla,
-      adherence: data.adherence_percentage
-    })), [slaData])
-
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-4 sm:p-6">
@@ -131,15 +127,16 @@ export default function RealtimeSLADashboard({ onCardClick }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <button 
-            className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500" 
+            className="bg-blue-50 rounded-lg p-4 hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500" 
             onClick={() => onCardClick?.({ title: 'All Tickets', data: allTickets })}
             aria-label="View all tickets"
           >
             <div className="text-sm text-gray-600">Total Tickets</div>
             <div className="text-3xl font-bold text-blue-600">{slaData.overall?.total_tickets ?? 0}</div>
           </button>
+          
           <button 
-            className="bg-green-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-green-500" 
+            className="bg-green-50 rounded-lg p-4 hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-green-500" 
             onClick={() => onCardClick?.({ title: 'Met SLA (Closed)', data: allTickets.filter(t => t.status === 'Closed' && !t.sla_violated) })}
             aria-label="View tickets that met SLA"
           >
@@ -149,8 +146,9 @@ export default function RealtimeSLADashboard({ onCardClick }) {
               {slaData.overall?.closed_adherence_percentage ?? 0}% adherence
             </div>
           </button>
+          
           <button 
-            className="bg-red-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-red-500" 
+            className="bg-red-50 rounded-lg p-4 hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-red-500" 
             onClick={() => onCardClick?.({ title: 'Violated SLA Tickets', data: allTickets.filter(t => t.sla_violated) })}
             aria-label="View SLA violated tickets"
           >
@@ -162,16 +160,15 @@ export default function RealtimeSLADashboard({ onCardClick }) {
               {slaData.overall?.open_violated ?? 0} currently open
             </div>
           </button>
+          
           <button 
-            className="bg-amber-50 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-500" 
+            className="bg-amber-50 rounded-lg p-4 hover:shadow-lg transition-shadow w-full text-left focus:outline-none focus:ring-2 focus:ring-amber-500" 
             onClick={() => onCardClick?.({ title: 'At Risk Tickets', data: allTickets.filter(t => t.status !== 'Closed' && !t.sla_violated) })}
             aria-label="View at-risk tickets"
           >
             <div className="text-sm text-gray-600">At Risk</div>
             <div className="text-3xl font-bold text-amber-600">{slaData.overall?.open_at_risk ?? 0}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              Open tickets near SLA
-            </div>
+            <div className="text-xs text-gray-500 mt-1">Open tickets near SLA</div>
           </button>
         </div>
 
@@ -194,7 +191,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
           <div>
             <h4 className="text-md font-semibold mb-3">Priority Breakdown</h4>
             <div className="space-y-3">
-              {Object.entries(slaData.priority_breakdown).map(([priority, data]) => (
+              {Object.entries(slaData.priority_breakdown || {}).map(([priority, data]) => (
                 <div key={priority} className="border rounded-lg p-3">
                   <div className="flex justify-between items-center mb-2">
                     <span className={`font-medium px-2 py-1 rounded text-sm ${
@@ -215,9 +212,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
                   </div>
                   <div className="text-sm text-gray-600">
                     {data.met_sla} met / {data.violated_sla} violated
-                    <span className="ml-2 text-xs">
-                      (Target: {data.target_hours}h)
-                    </span>
+                    <span className="ml-2 text-xs">(Target: {data.target_hours}h)</span>
                   </div>
                   <div className="mt-2 bg-gray-200 rounded-full h-2">
                     <div
@@ -282,7 +277,7 @@ export default function RealtimeSLADashboard({ onCardClick }) {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h4 className="font-semibold text-blue-900 mb-2">SLA Targets</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-          {Object.entries(slaData.sla_targets).map(([priority, hours]) => (
+          {Object.entries(slaData.sla_targets || {}).map(([priority, hours]) => (
             <div key={priority} className="bg-white rounded p-2">
               <span className="font-medium">{priority}:</span> {hours}h
             </div>

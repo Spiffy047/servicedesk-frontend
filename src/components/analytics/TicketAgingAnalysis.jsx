@@ -117,7 +117,7 @@ export default function TicketAgingAnalysis() {
       {chartData.length > 0 ? (
         <>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
+            <BarChart data={chartData} animationDuration={800}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="bucket" />
               <YAxis />

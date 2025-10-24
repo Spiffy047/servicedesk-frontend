@@ -103,7 +103,15 @@ export default function TicketAgingAnalysis() {
 
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <h3 className="text-lg font-semibold mb-4">Ticket Aging Analysis</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Ticket Aging Analysis</h3>
+        <button 
+          onClick={exportData}
+          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+        >
+          Export CSV
+        </button>
+      </div>
       {chartData.length > 0 ? (
         <>
           <ResponsiveContainer width="100%" height={300}>

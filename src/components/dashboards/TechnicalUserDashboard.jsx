@@ -261,16 +261,18 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                           {ticket.status !== 'Pending' && (
                             <button
                               onClick={() => handleStatusUpdate(ticket.id, 'Pending')}
-                              className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm hover:bg-yellow-200"
+                              disabled={updatingTicket === ticket.id}
+                              className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Set Pending
+                              {updatingTicket === ticket.id ? 'Updating...' : 'Set Pending'}
                             </button>
                           )}
                           <button
                             onClick={() => handleStatusUpdate(ticket.id, 'Closed')}
-                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                            disabled={updatingTicket === ticket.id}
+                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Resolve
+                            {updatingTicket === ticket.id ? 'Resolving...' : 'Resolve'}
                           </button>
                         </>
                       )}

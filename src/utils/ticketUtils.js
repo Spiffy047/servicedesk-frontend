@@ -45,3 +45,30 @@ export const formatHoursOpen = (hoursOpen) => {
   const hours = Math.round(hoursOpen % 24)
   return `${days}d ${hours}h`
 }
+
+// Workflow utilities
+export const TICKET_STATUSES = {
+  NEW: 'New',
+  OPEN: 'Open', 
+  PENDING: 'Pending',
+  CLOSED: 'Closed'
+}
+
+export const VALID_TRANSITIONS = {
+  [TICKET_STATUSES.NEW]: [TICKET_STATUSES.OPEN, TICKET_STATUSES.CLOSED],
+  [TICKET_STATUSES.OPEN]: [TICKET_STATUSES.PENDING, TICKET_STATUSES.CLOSED],
+  [TICKET_STATUSES.PENDING]: [TICKET_STATUSES.OPEN, TICKET_STATUSES.CLOSED],
+  [TICKET_STATUSES.CLOSED]: []
+}
+
+export const canTransitionTo = (currentStatus, newStatus) => {
+  return VALID_TRANSITIONS[currentStatus]?.includes(newStatus) || false
+}
+
+export const getAvailableStatuses = (currentStatus) => {
+  return VALID_TRANSITIONS[currentStatus] || []
+}
+
+export const shouldAutoAssign = (ticket) => {
+  return ticket.priority === 'Critical' && !ticket.assigned_to
+}

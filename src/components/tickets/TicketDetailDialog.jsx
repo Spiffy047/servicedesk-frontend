@@ -71,6 +71,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     const file = e.target.files[0]
     if (!file) return
 
+    // Basic file validation
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      alert('File size must be less than 10MB')
+      return
+    }
+
+    const allowedTypes = ['image/', 'application/pdf', 'text/', 'application/msword', 'application/vnd.openxmlformats']
+    if (!allowedTypes.some(type => file.type.startsWith(type))) {
+      alert('File type not supported. Please upload images, PDFs, or documents.')
+      return
+    }
+
     setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
@@ -78,13 +91,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     formData.append('uploaded_by', currentUser.id)
 
     try {
-      await fetch(`${API_URL}/files/upload`, {
+      const response = await fetch(`${API_URL}/files/upload`, {
         method: 'POST',
         body: formData
       })
+      
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+      
       fetchAttachments()
     } catch (err) {
       console.error('Failed to upload file:', err)
+      alert('Failed to upload file. Please try again.')
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''

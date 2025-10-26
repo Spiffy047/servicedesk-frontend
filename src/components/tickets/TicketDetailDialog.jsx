@@ -289,7 +289,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                   <option value={ticket.status}>{ticket.status}</option>
                   {getAvailableStatuses(ticket.status).map(status => (
                     <option key={status} value={status}>{status}</option>
-                  ))}/option>
+                  ))}/option>/option>
                 </select>
               ) : (
                 <p className="text-gray-900">{ticket.status}</p>

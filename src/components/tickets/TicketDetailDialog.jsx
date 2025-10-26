@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { getAvailableStatuses } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
 
@@ -11,6 +12,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [agents, setAgents] = useState([])
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [dragActive, setDragActive] = useState(false)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -67,10 +69,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
+  const validateAndUploadFile = async (file) => {
     // Basic file validation
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
@@ -107,6 +106,32 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    validateAndUploadFile(file)
+  }
+
+  const handleDrag = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true)
+    } else if (e.type === 'dragleave') {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      validateAndUploadFile(e.dataTransfer.files[0])
     }
   }
 
@@ -261,10 +286,10 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                   onChange={(e) => setEditedTicket({...editedTicket, status: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
-                  <option value="New">New</option>
-                  <option value="Open">Open</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Closed">Closed</option>
+                  <option value={ticket.status}>{ticket.status}</option>
+                  {getAvailableStatuses(ticket.status).map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}/option>
                 </select>
               ) : (
                 <p className="text-gray-900">{ticket.status}</p>
@@ -347,7 +372,18 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
           </div>
         </div>
 
-        <div className="p-6 border-t bg-white">
+        <div 
+          className="p-6 border-t bg-white"
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          {dragActive && (
+            <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+              <div className="text-blue-600 text-lg font-medium">Drop file here to upload</div>
+            </div>
+          )}
           <form onSubmit={handleSendMessage} className="flex gap-3">
             <textarea
               value={newMessage}

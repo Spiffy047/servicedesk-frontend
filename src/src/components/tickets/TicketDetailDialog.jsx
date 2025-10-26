@@ -27,14 +27,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }, [messages, activities])
 
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch(`${API_URL}/messages/ticket/${ticket.id}/timeline`)
-      const data = await response.json()
-      setMessages(Array.isArray(data) ? data : data.messages || [])
-    } catch (err) {
-      console.error('Failed to fetch messages:', err)
-    }
   }
 
   const fetchActivities = async () => {

@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useWebSocket } from '../../contexts/WebSocketContext'
 import { getAvailableStatuses } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
 
 export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpdate }) {
+  const { isConnected } = useWebSocket()
   const [messages, setMessages] = useState([])
   const [activities, setActivities] = useState([])
   const [newMessage, setNewMessage] = useState('')
@@ -12,6 +14,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [agents, setAgents] = useState([])
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef(null)
@@ -76,6 +79,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       setAttachments(data || [])
     } catch (err) {
       console.error('Failed to fetch attachments:', err)
+    }
+  }
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true)
+    try {
+      await Promise.all([
+        fetchMessages(),
+        fetchActivities(),
+        fetchAttachments()
+      ])
+    } finally {
+      setRefreshing(false)
     }
   }
 
@@ -203,6 +219,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{ticket.title}</h2>
               <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-xs text-gray-500">
+                  {isConnected ? 'Connected' : 'Disconnected'}
+                </span>
+                <button
+                  onClick={handleManualRefresh}
+                  disabled={refreshing}
+                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                >
+                  {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+                </button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {ticket.sla_violated && (

@@ -21,11 +21,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     fetchAttachments()
   }, [ticket.id])
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages, activities])
+  
 
   const fetchMessages = async () => {
     try {

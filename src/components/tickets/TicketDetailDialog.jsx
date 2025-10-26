@@ -13,14 +13,24 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
 
   useEffect(() => {
     fetchMessages()
     fetchActivities()
     fetchAgents()
     fetchAttachments()
+
+    // Set up polling for real-time updates
+    const pollInterval = setInterval(() => {
+      fetchMessages()
+      fetchActivities()
+    }, 3000) // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval)
   }, [ticket.id])
 
   useEffect(() => {
@@ -369,6 +379,23 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                 )}
               </div>
             ))}
+            {isTyping && (
+              <div className="flex gap-3 items-center">
+                <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-sm font-medium">
+                  {currentUser.name.charAt(0)}
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 text-sm">Typing</span>
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -387,7 +414,18 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
           <form onSubmit={handleSendMessage} className="flex gap-3">
             <textarea
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value)
+                
+                // Typing indicator logic
+                setIsTyping(true)
+                if (typingTimeoutRef.current) {
+                  clearTimeout(typingTimeoutRef.current)
+                }
+                typingTimeoutRef.current = setTimeout(() => {
+                  setIsTyping(false)
+                }, 1000)
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()

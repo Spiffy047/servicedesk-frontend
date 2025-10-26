@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useWebSocket } from '../../contexts/WebSocketContext'
-import { getAvailableStatuses } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
 
 export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpdate }) {
-  const { isConnected } = useWebSocket()
   const [messages, setMessages] = useState([])
   const [activities, setActivities] = useState([])
   const [newMessage, setNewMessage] = useState('')
@@ -14,26 +11,14 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [agents, setAgents] = useState([])
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
-  const [dragActive, setDragActive] = useState(false)
-  const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
-  const typingTimeoutRef = useRef(null)
 
   useEffect(() => {
     fetchMessages()
     fetchActivities()
     fetchAgents()
     fetchAttachments()
-
-    // Set up polling for real-time updates
-    const pollInterval = setInterval(() => {
-      fetchMessages()
-      fetchActivities()
-    }, 3000) // Poll every 3 seconds
-
-    return () => clearInterval(pollInterval)
   }, [ticket.id])
 
   useEffect(() => {
@@ -82,32 +67,9 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }
 
-  const handleManualRefresh = async () => {
-    setRefreshing(true)
-    try {
-      await Promise.all([
-        fetchMessages(),
-        fetchActivities(),
-        fetchAttachments()
-      ])
-    } finally {
-      setRefreshing(false)
-    }
-  }
-
-  const validateAndUploadFile = async (file) => {
-    // Basic file validation
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-      alert('File size must be less than 10MB')
-      return
-    }
-
-    const allowedTypes = ['image/', 'application/pdf', 'text/', 'application/msword', 'application/vnd.openxmlformats']
-    if (!allowedTypes.some(type => file.type.startsWith(type))) {
-      alert('File type not supported. Please upload images, PDFs, or documents.')
-      return
-    }
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
 
     setUploading(true)
     const formData = new FormData()
@@ -116,48 +78,16 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     formData.append('uploaded_by', currentUser.id)
 
     try {
-      const response = await fetch(`${API_URL}/files/upload`, {
+      await fetch(`${API_URL}/files/upload`, {
         method: 'POST',
         body: formData
       })
-      
-      if (!response.ok) {
-        throw new Error('Upload failed')
-      }
-      
       fetchAttachments()
     } catch (err) {
       console.error('Failed to upload file:', err)
-      alert('Failed to upload file. Please try again.')
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
-    }
-  }
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    validateAndUploadFile(file)
-  }
-
-  const handleDrag = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true)
-    } else if (e.type === 'dragleave') {
-      setDragActive(false)
-    }
-  }
-
-  const handleDrop = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      validateAndUploadFile(e.dataTransfer.files[0])
     }
   }
 
@@ -219,19 +149,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{ticket.title}</h2>
               <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-xs text-gray-500">
-                  {isConnected ? 'Connected' : 'Disconnected'}
-                </span>
-                <button
-                  onClick={handleManualRefresh}
-                  disabled={refreshing}
-                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                >
-                  {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
-                </button>
-              </div>
             </div>
             <div className="flex items-center gap-2">
               {ticket.sla_violated && (
@@ -325,10 +242,10 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                   onChange={(e) => setEditedTicket({...editedTicket, status: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
-                  <option value={ticket.status}>{ticket.status}</option>
-                  {getAvailableStatuses(ticket.status).map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}/option>/option>
+                  <option value="New">New</option>
+                  <option value="Open">Open</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Closed">Closed</option>
                 </select>
               ) : (
                 <p className="text-gray-900">{ticket.status}</p>
@@ -408,60 +325,21 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                 )}
               </div>
             ))}
-            {isTyping && (
-              <div className="flex gap-3 items-center">
-                <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-sm font-medium">
-                  {currentUser.name.charAt(0)}
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500 text-sm">Typing</span>
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        <div 
-          className="p-6 border-t bg-white"
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          {dragActive && (
-            <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
-              <div className="text-blue-600 text-lg font-medium">Drop file here to upload</div>
-            </div>
-          )}
+        <div className="p-6 border-t bg-white">
           <form onSubmit={handleSendMessage} className="flex gap-3">
             <textarea
               value={newMessage}
-              onChange={(e) => {
-                setNewMessage(e.target.value)
-                
-                // Typing indicator logic
-                setIsTyping(true)
-                if (typingTimeoutRef.current) {
-                  clearTimeout(typingTimeoutRef.current)
-                }
-                typingTimeoutRef.current = setTimeout(() => {
-                  setIsTyping(false)
-                }, 1000)
-              }}
+              onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   handleSendMessage(e)
                 }
               }}
-              placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
+              placeholder="Type your message..."
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows="3"
             />

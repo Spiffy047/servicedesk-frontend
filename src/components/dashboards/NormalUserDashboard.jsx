@@ -5,49 +5,27 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-/**
- * NormalUserDashboard - Main interface for end users to manage their support tickets
- * 
- * Features:
- * - View personal ticket statistics (total, open, pending, SLA violations)
- * - Create new support tickets with priority and category selection
- * - Browse and search through personal ticket history
- * - View detailed ticket information and conversation history
- * - Track ticket status and resolution progress
- * - Auto-assignment notification for new tickets
- * 
- * User permissions:
- * - Can only see their own tickets
- * - Can create new tickets
- * - Can view and comment on their tickets
- * - Cannot edit ticket properties (status, priority, assignment)
- */
+// Dashboard for end users to create and manage their support tickets
 export default function NormalUserDashboard({ user }) {
-  // Main data state - user's tickets and loading status
-  const [tickets, setTickets] = useState([]) // All tickets belonging to this user
-  const [loading, setLoading] = useState(true) // Initial page load state
-  
-  // UI state for modals and dialogs
-  const [showCreateModal, setShowCreateModal] = useState(false) // New ticket form modal
-  const [selectedTicket, setSelectedTicket] = useState(null) // Ticket detail dialog
-  const [modalData, setModalData] = useState(null) // Data modal for statistics
-  
-  // Error handling and form states
-  const [error, setError] = useState(null) // General error messages
-  const [createError, setCreateError] = useState(null) // Ticket creation errors
-  const [creating, setCreating] = useState(false) // Form submission state
-  const [successMessage, setSuccessMessage] = useState('') // Success feedback
+  // Main data and UI state
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [modalData, setModalData] = useState(null)
+  const [error, setError] = useState(null)
+  const [createError, setCreateError] = useState(null)
+  const [creating, setCreating] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
-  // Load user's tickets when component mounts or user changes
   useEffect(() => {
     fetchTickets()
   }, [user])
 
-  // Fetch all tickets belonging to the current user
+  // Fetch user's tickets
   const fetchTickets = async () => {
     try {
       setLoading(true)
-      // API filters tickets by user_id to ensure users only see their own tickets
       const response = await fetch(`${API_URL}/tickets?user_id=${user.id}`)
       const data = await response.json()
       setTickets(data)
@@ -59,7 +37,7 @@ export default function NormalUserDashboard({ user }) {
     }
   }
 
-  // Handle new ticket creation form submission
+  // Handle ticket creation
   const handleCreateTicket = async (e) => {
     e.preventDefault()
     const formData = new FormData(e.target)
@@ -68,7 +46,6 @@ export default function NormalUserDashboard({ user }) {
     setCreateError(null)
     
     try {
-      // Submit new ticket with user's ID and form data
       const response = await fetch(`${API_URL}/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,17 +54,16 @@ export default function NormalUserDashboard({ user }) {
           description: formData.get('description'),
           priority: formData.get('priority'),
           category: formData.get('category'),
-          user_id: user.id // Associate ticket with current user
+          user_id: user.id
         })
       })
 
       if (response.ok) {
-        // Success - close modal, refresh tickets, show confirmation
         setSuccessMessage('Ticket created successfully!')
         setShowCreateModal(false)
-        fetchTickets() // Refresh ticket list to show new ticket
-        e.target.reset() // Clear form fields
-        setTimeout(() => setSuccessMessage(''), 3000) // Auto-hide success message
+        fetchTickets()
+        e.target.reset()
+        setTimeout(() => setSuccessMessage(''), 3000)
       }
     } catch (error) {
       setCreateError('Failed to create ticket. Please try again.')

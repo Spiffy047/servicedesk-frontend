@@ -6,44 +6,22 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-/**
- * TechnicalUserDashboard - Main interface for IT agents to manage tickets and track performance
- * 
- * Features:
- * - View assigned tickets and all available tickets
- * - Quick status updates (pending, resolved) for assigned tickets
- * - Performance metrics and SLA violation alerts
- * - Search functionality across all tickets
- * - Priority-based ticket sorting (Critical first)
- * - Real-time ticket statistics and workload tracking
- * 
- * Agent permissions:
- * - Can view all tickets in the system
- * - Can update status of assigned tickets
- * - Can take ownership of unassigned tickets
- * - Cannot reassign tickets to other agents
- * - Cannot modify ticket priority or category
- */
+// Dashboard for IT agents to manage tickets and track performance
 export default function TechnicalUserDashboard({ user, onLogout }) {
-  // Main data state - all tickets and filtering
-  const [tickets, setTickets] = useState([]) // All tickets in the system
-  const [loading, setLoading] = useState(true) // Initial data loading state
-  const [error, setError] = useState(null) // Error handling for API calls
-  
-  // UI state for tabs and modals
-  const [activeTab, setActiveTab] = useState('myQueue') // Current view: myQueue or allTickets
-  const [selectedTicket, setSelectedTicket] = useState(null) // Ticket detail dialog
-  const [modalData, setModalData] = useState(null) // Data modal for statistics
-  
-  // Action states for user feedback
-  const [updatingTicket, setUpdatingTicket] = useState(null) // Track which ticket is being updated
+  // Data and UI state
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [activeTab, setActiveTab] = useState('myQueue')
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [modalData, setModalData] = useState(null)
+  const [updatingTicket, setUpdatingTicket] = useState(null)
 
-  // Load tickets when component mounts or user changes
   useEffect(() => {
     fetchTickets()
   }, [user])
 
-  // Fetch all tickets from the API - agents can see all tickets for better coordination
+  // Fetch all tickets - agents can see all tickets
   const fetchTickets = async () => {
     try {
       setLoading(true)
@@ -58,14 +36,14 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
     }
   }
 
-  // Filter tickets for different views and alerts
-  const myTickets = tickets.filter(t => t.assigned_to === user.id) // Tickets assigned to current agent
-  const slaViolationTickets = myTickets.filter(t => t.sla_violated && t.status !== 'Closed') // Urgent tickets needing attention
-  const displayTickets = activeTab === 'myQueue' ? myTickets : tickets // Current view based on active tab
+  // Filter tickets for different views
+  const myTickets = tickets.filter(t => t.assigned_to === user.id)
+  const slaViolationTickets = myTickets.filter(t => t.sla_violated && t.status !== 'Closed')
+  const displayTickets = activeTab === 'myQueue' ? myTickets : tickets
 
-  // Handle quick status updates for assigned tickets
+  // Handle status updates for assigned tickets
   const handleStatusUpdate = async (ticketId, newStatus) => {
-    setUpdatingTicket(ticketId) // Show loading state on specific ticket
+    setUpdatingTicket(ticketId)
     
     try {
       const response = await fetch(`${API_URL}/tickets/${ticketId}/status`, {
@@ -79,13 +57,13 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       })
       
       if (response.ok) {
-        fetchTickets() // Refresh ticket list to show updated status
+        fetchTickets()
       }
     } catch (error) {
       console.error('Failed to update ticket status:', error)
       setError('Failed to update ticket status')
     } finally {
-      setUpdatingTicket(null) // Clear loading state
+      setUpdatingTicket(null)
     }
   }
 

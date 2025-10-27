@@ -9,43 +9,23 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-/**
- * TechnicalSupervisorDashboard - Management interface for team leads and supervisors
- * 
- * Features:
- * - Team performance monitoring and agent workload management
- * - Ticket assignment and redistribution capabilities
- * - SLA violation tracking and escalation management
- * - Advanced analytics with charts and performance scorecards
- * - Export functionality for reporting and compliance
- * - Real-time dashboard with unassigned ticket alerts
- * 
- * Supervisor permissions:
- * - Can view all tickets and assign them to agents
- * - Can monitor team performance and SLA adherence
- * - Can access advanced analytics and reporting
- * - Can export data for management reporting
- * - Cannot modify system settings or user accounts
- */
+// Dashboard for supervisors to manage team performance and ticket assignments
 export default function TechnicalSupervisorDashboard({ user, onLogout }) {
-  // Main data state - tickets and analytics
-  const [tickets, setTickets] = useState([]) // All tickets in the system
-  const [statusCounts, setStatusCounts] = useState({}) // Ticket counts by status for charts
-  const [unassignedTickets, setUnassignedTickets] = useState([]) // Tickets needing assignment
-  const [agentWorkload, setAgentWorkload] = useState([]) // Agent performance and workload data
-  
-  // UI state for navigation and modals
-  const [activeTab, setActiveTab] = useState('dashboard') // Current view: dashboard, analytics, or allTickets
-  const [selectedTicket, setSelectedTicket] = useState(null) // Ticket detail dialog
-  const [modalData, setModalData] = useState(null) // Data modal for filtered views
+  // Data and UI state
+  const [tickets, setTickets] = useState([])
+  const [statusCounts, setStatusCounts] = useState({})
+  const [unassignedTickets, setUnassignedTickets] = useState([])
+  const [agentWorkload, setAgentWorkload] = useState([])
+  const [activeTab, setActiveTab] = useState('dashboard')
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [modalData, setModalData] = useState(null)
 
-  // Load all data when component mounts
   useEffect(() => {
-    fetchTickets() // Get all tickets for overview
-    fetchAnalytics() // Get performance metrics and workload data
+    fetchTickets()
+    fetchAnalytics()
   }, [])
 
-  // Fetch all tickets - supervisors need full visibility for team management
+  // Fetch all tickets
   const fetchTickets = async () => {
     try {
       const response = await fetch(`${API_URL}/tickets`)
@@ -56,14 +36,13 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
-  // Fetch analytics data for dashboard and team management
+  // Fetch analytics data
   const fetchAnalytics = async () => {
     try {
-      // Parallel fetch for better performance
       const [statusRes, unassignedRes, workloadRes] = await Promise.all([
-        fetch(`${API_URL}/analytics/ticket-status-counts`), // Status distribution for charts
-        fetch(`${API_URL}/analytics/unassigned-tickets`),   // Tickets needing assignment
-        fetch(`${API_URL}/analytics/agent-workload`)        // Agent performance metrics
+        fetch(`${API_URL}/analytics/ticket-status-counts`),
+        fetch(`${API_URL}/analytics/unassigned-tickets`),
+        fetch(`${API_URL}/analytics/agent-workload`)
       ])
       
       setStatusCounts(await statusRes.json())
@@ -75,7 +54,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
-  // Handle ticket assignment to agents - key supervisor function
+  // Handle ticket assignment to agents
   const handleAssignTicket = async (ticketId, agentId) => {
     try {
       await fetch(`${API_URL}/tickets/${ticketId}`, {
@@ -83,11 +62,10 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assigned_to: agentId,
-          performed_by: user.id,      // Track who made the assignment
+          performed_by: user.id,
           performed_by_name: user.name
         })
       })
-      // Refresh both tickets and analytics to update workload distribution
       fetchTickets()
       fetchAnalytics()
     } catch (err) {
@@ -95,10 +73,9 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
-  // Transform status counts into chart-friendly format
   const chartData = Object.entries(statusCounts).map(([status, count]) => ({ status, count }))
 
-  // Export tickets data to Excel for reporting and analysis
+  // Export tickets to Excel
   const handleExportExcel = async () => {
     try {
       const response = await fetch(`${API_URL}/export/tickets/excel`, {
@@ -106,7 +83,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
       })
       const blob = await response.blob()
       
-      // Create download link and trigger download
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -114,7 +90,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
       document.body.appendChild(a)
       a.click()
       
-      // Cleanup
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (err) {

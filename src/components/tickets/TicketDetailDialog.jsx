@@ -2,67 +2,50 @@ import { useState, useEffect, useRef } from 'react'
 
 const API_URL = 'http://localhost:5002/api'
 
-/**
- * TicketDetailDialog - Full-featured modal for ticket management
- * 
- * This component handles:
- * - Displaying ticket info with real-time status/priority badges
- * - Role-based editing (agents can edit any ticket, users only their own open tickets)
- * - Combined timeline of messages and system activities
- * - File attachments with drag-drop upload
- * - Real-time messaging with keyboard shortcuts (Enter to send, Shift+Enter for newline)
- * - Auto-scroll to keep latest messages visible
- */
+// Modal dialog for viewing ticket details, messaging, and editing properties
 export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpdate }) {
-  // Timeline data - messages are chat conversations, activities are system events
-  const [messages, setMessages] = useState([]) // User/agent chat messages
-  const [activities, setActivities] = useState([]) // Status changes, assignments, etc.
+  // Timeline data
+  const [messages, setMessages] = useState([])
+  const [activities, setActivities] = useState([])
+  const [newMessage, setNewMessage] = useState('')
   
-  // Message composition state
-  const [newMessage, setNewMessage] = useState('') // Text being typed in message box
+  // Editing state
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedTicket, setEditedTicket] = useState(ticket)
   
-  // Ticket editing state - only shown when user has edit permissions
-  const [isEditing, setIsEditing] = useState(false) // Toggle between view/edit mode
-  const [editedTicket, setEditedTicket] = useState(ticket) // Local copy for editing before save
+  // Supporting data
+  const [agents, setAgents] = useState([])
+  const [attachments, setAttachments] = useState([])
+  const [uploading, setUploading] = useState(false)
   
-  // Supporting data for dropdowns and file handling
-  const [agents, setAgents] = useState([]) // List of agents for assignment dropdown
-  const [attachments, setAttachments] = useState([]) // Files attached to this ticket
-  const [uploading, setUploading] = useState(false) // Show spinner during file upload
-  
-  // DOM references for programmatic control
-  const scrollRef = useRef(null) // Timeline container - used for auto-scroll to bottom
-  const fileInputRef = useRef(null) // Hidden file input - triggered by attach button
+  // DOM refs
+  const scrollRef = useRef(null)
+  const fileInputRef = useRef(null)
 
-  // Load all ticket data when dialog opens or ticket changes
   useEffect(() => {
-    fetchMessages() // Get chat history
-    fetchActivities() // Get system activity log
-    fetchAgents() // Get agent list for assignment dropdown
-    fetchAttachments() // Get uploaded files
+    fetchMessages()
+    fetchActivities()
+    fetchAgents()
+    fetchAttachments()
   }, [ticket.id])
 
-  // Auto-scroll timeline to bottom when new messages/activities arrive
-  // This keeps the conversation flowing naturally like a chat app
+  // Auto-scroll timeline to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, activities])
 
-  // Get all chat messages for this ticket from the API
   const fetchMessages = async () => {
     try {
       const response = await fetch(`${API_URL}/messages/ticket/${ticket.id}/timeline`)
       const data = await response.json()
-      // Handle different response formats from backend
       setMessages(Array.isArray(data) ? data : data.messages || [])
     } catch (err) {
       console.error('Failed to fetch messages:', err)
     }
   }
 
-  // Get system activity log (status changes, assignments, etc.)
   const fetchActivities = async () => {
     try {
       const response = await fetch(`${API_URL}/tickets/${ticket.id}/activities`)
@@ -73,7 +56,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }
 
-  // Get list of all agents for the assignment dropdown
   const fetchAgents = async () => {
     try {
       const response = await fetch(`${API_URL}/agents`)
@@ -84,7 +66,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }
 
-  // Get all files attached to this ticket
   const fetchAttachments = async () => {
     try {
       const response = await fetch(`${API_URL}/files/ticket/${ticket.id}`)
@@ -95,14 +76,12 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }
 
-  // Handle file attachment upload
+  // Handle file upload
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
 
-    setUploading(true) // Show loading state on attach button
-    
-    // Create form data for multipart upload
+    setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
     formData.append('ticket_id', ticket.id)
@@ -113,20 +92,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
         method: 'POST',
         body: formData
       })
-      fetchAttachments() // Refresh attachment list to show new file
+      fetchAttachments()
     } catch (err) {
       console.error('Failed to upload file:', err)
     } finally {
       setUploading(false)
-      // Clear the file input so same file can be uploaded again if needed
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
-  // Send a new message in the ticket conversation
+  // Send message
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!newMessage.trim()) return // Don't send empty messages
+    if (!newMessage.trim()) return
 
     try {
       const response = await fetch(`${API_URL}/messages`, {
@@ -142,15 +120,15 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       })
       
       if (response.ok) {
-        setNewMessage('') // Clear input field
-        await fetchMessages() // Refresh to show new message in timeline
+        setNewMessage('')
+        await fetchMessages()
       }
     } catch (err) {
       console.error('Failed to send message:', err)
     }
   }
 
-  // Save changes made to ticket properties (status, priority, assignment)
+  // Save ticket changes
   const handleSaveChanges = async () => {
     try {
       await fetch(`${API_URL}/tickets/${ticket.id}`, {
@@ -162,21 +140,19 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
           performed_by_name: currentUser.name
         })
       })
-      setIsEditing(false) // Exit edit mode
-      onUpdate() // Tell parent component to refresh ticket list
-      fetchActivities() // Refresh to show the update activity in timeline
+      setIsEditing(false)
+      onUpdate()
+      fetchActivities()
     } catch (err) {
       console.error('Failed to update ticket:', err)
     }
   }
 
-  // Combine messages and activities into a single chronological timeline
-  // Messages have 'timestamp', activities have 'created_at' - we handle both
+  // Combine messages and activities into chronological timeline
   const timeline = [...messages, ...activities]
     .sort((a, b) => new Date(a.timestamp || a.created_at) - new Date(b.timestamp || b.created_at))
 
-  // Determine if current user can edit this ticket
-  // Rules: Agents can edit any ticket, regular users can only edit their own tickets that aren't closed
+  // Check edit permissions
   const canEdit = currentUser.role !== 'Normal User' || 
     (currentUser.role === 'Normal User' && ticket.created_by === currentUser.id && ticket.status !== 'Closed')
 

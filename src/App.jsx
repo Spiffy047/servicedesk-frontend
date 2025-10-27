@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { WebSocketProvider } from './WebSocketContext'
 import NormalUserDashboard from './components/dashboards/NormalUserDashboard'
 import TechnicalUserDashboard from './components/dashboards/TechnicalUserDashboard'
 import TechnicalSupervisorDashboard from './components/dashboards/TechnicalSupervisorDashboard'
@@ -102,18 +103,26 @@ function App() {
   }
 
   // Route to appropriate dashboard based on role
-  switch (user.role) {
-    case 'Normal User':
-      return <NormalUserDashboard user={user} onLogout={handleLogout} />
-    case 'Technical User':
-      return <TechnicalUserDashboard user={user} onLogout={handleLogout} />
-    case 'Technical Supervisor':
-      return <TechnicalSupervisorDashboard user={user} onLogout={handleLogout} />
-    case 'System Admin':
-      return <SystemAdminDashboard user={user} onLogout={handleLogout} />
-    default:
-      return <NormalUserDashboard user={user} onLogout={handleLogout} />
+  const renderDashboard = () => {
+    switch (user.role) {
+      case 'Normal User':
+        return <NormalUserDashboard user={user} onLogout={handleLogout} />
+      case 'Technical User':
+        return <TechnicalUserDashboard user={user} onLogout={handleLogout} />
+      case 'Technical Supervisor':
+        return <TechnicalSupervisorDashboard user={user} onLogout={handleLogout} />
+      case 'System Admin':
+        return <SystemAdminDashboard user={user} onLogout={handleLogout} />
+      default:
+        return <NormalUserDashboard user={user} onLogout={handleLogout} />
+    }
   }
+
+  return (
+    <WebSocketProvider user={user}>
+      {renderDashboard()}
+    </WebSocketProvider>
+  )
 }
 
 export default App

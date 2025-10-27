@@ -1,26 +1,4 @@
 import { useState, useEffect } from 'react'
-import TicketDetailDialog from '../tickets/TicketDetailDialog'
-import { getAvailableStatuses, getEscalationRules, validateWorkflow, shouldAutoAssign, getStatusColor, getPriorityColor } from '../../utils/ticketUtils'
-
-const API_URL = 'http://localhost:5002/api'
-
-export default function TechnicalUserDashboard({ user, onLogout }) {
-  const [tickets, setTickets] = useState([])
-  const [selectedTicket, setSelectedTicket] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('assigned')
-
-  useEffect(() => {
-    fetchTickets()
-  }, [])
-
-  const fetchTickets = async () => {
-    try {
-      const response = await fetch(`${API_URL}/tickets`)
-      const data = await response.json()
-      setTickets(data || [])
-    } catch (err) {
-      setTickets([])
 import PropTypes from 'prop-types'
 import AgentPerformanceCard from '../analytics/AgentPerformanceCard'
 import TicketDetailDialog from '../tickets/TicketDetailDialog'
@@ -29,25 +7,43 @@ import DataModal from '../common/DataModal'
 const API_URL = 'http://localhost:5002/api'
 
 /**
- * TechnicalUserDashboard - Dashboard for technical users/agents to manage their assigned tickets
- * @param {Object} props - Component props
- * @param {Object} props.user - User object with id, name, and role
- * @param {Function} props.onLogout - Logout callback function
- * @returns {JSX.Element} The rendered technical user dashboard component
+ * TechnicalUserDashboard - Main interface for IT agents to manage tickets and track performance
+ * 
+ * Features:
+ * - View assigned tickets and all available tickets
+ * - Quick status updates (pending, resolved) for assigned tickets
+ * - Performance metrics and SLA violation alerts
+ * - Search functionality across all tickets
+ * - Priority-based ticket sorting (Critical first)
+ * - Real-time ticket statistics and workload tracking
+ * 
+ * Agent permissions:
+ * - Can view all tickets in the system
+ * - Can update status of assigned tickets
+ * - Can take ownership of unassigned tickets
+ * - Cannot reassign tickets to other agents
+ * - Cannot modify ticket priority or category
  */
 export default function TechnicalUserDashboard({ user, onLogout }) {
-  const [tickets, setTickets] = useState([])
-  const [activeTab, setActiveTab] = useState('myQueue')
-  const [selectedTicket, setSelectedTicket] = useState(null)
-  const [modalData, setModalData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [updatingTicket, setUpdatingTicket] = useState(null)
+  // Main data state - all tickets and filtering
+  const [tickets, setTickets] = useState([]) // All tickets in the system
+  const [loading, setLoading] = useState(true) // Initial data loading state
+  const [error, setError] = useState(null) // Error handling for API calls
+  
+  // UI state for tabs and modals
+  const [activeTab, setActiveTab] = useState('myQueue') // Current view: myQueue or allTickets
+  const [selectedTicket, setSelectedTicket] = useState(null) // Ticket detail dialog
+  const [modalData, setModalData] = useState(null) // Data modal for statistics
+  
+  // Action states for user feedback
+  const [updatingTicket, setUpdatingTicket] = useState(null) // Track which ticket is being updated
 
+  // Load tickets when component mounts or user changes
   useEffect(() => {
     fetchTickets()
   }, [user])
 
+  // Fetch all tickets from the API - agents can see all tickets for better coordination
   const fetchTickets = async () => {
     try {
       setLoading(true)
@@ -62,91 +58,47 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
     }
   }
 
-  const assignedTickets = tickets.filter(t => t.assigned_to === user.id)
-  const unassignedTickets = tickets.filter(t => !t.assigned_to && t.status !== 'Closed')
+  // Filter tickets for different views and alerts
+  const myTickets = tickets.filter(t => t.assigned_to === user.id) // Tickets assigned to current agent
+  const slaViolationTickets = myTickets.filter(t => t.sla_violated && t.status !== 'Closed') // Urgent tickets needing attention
+  const displayTickets = activeTab === 'myQueue' ? myTickets : tickets // Current view based on active tab
 
-  const handleTakeTicket = async (ticketId) => {
-    try {
-      await fetch(`${API_URL}/tickets/${ticketId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          assigned_to: user.id,
-          status: 'Open',
-          performed_by: user.id,
-          performed_by_name: user.name
-        })
-      })
-      fetchTickets()
-    } catch (err) {
-      alert('Failed to assign ticket')
-    }
-  }
-
-  const handleStatusChange = async (ticketId, newStatus) => {
-    const ticket = tickets.find(t => t.id === ticketId)
-    const validation = validateWorkflow(ticket, newStatus, user.role)
+  // Handle quick status updates for assigned tickets
+  const handleStatusUpdate = async (ticketId, newStatus) => {
+    setUpdatingTicket(ticketId) // Show loading state on specific ticket
     
-    if (!validation.isValid) {
-      alert(validation.errors.join('\n'))
-      return
-    }
-
     try {
-      await fetch(`${API_URL}/tickets/${ticketId}`, {
+      const response = await fetch(`${API_URL}/tickets/${ticketId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           status: newStatus,
           performed_by: user.id,
           performed_by_name: user.name
         })
       })
-      fetchTickets()
-    } catch (err) {
-      alert('Failed to update status')
-    }
-  }
-
-  const getTicketAlerts = (ticket) => {
-    const rules = getEscalationRules(ticket)
-    return rules.map(rule => (
-      <div key={rule.type} className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-        ⚠️ {rule.reason}
-      </div>
-    ))
-  }
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
-  const handleStatusUpdate = async (ticketId, newStatus) => {
-    setUpdatingTicket(ticketId)
-    try {
-      const response = await fetch(`${API_URL}/tickets/${ticketId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
       
       if (response.ok) {
-        fetchTickets()
+        fetchTickets() // Refresh ticket list to show updated status
       }
     } catch (error) {
       console.error('Failed to update ticket status:', error)
+      setError('Failed to update ticket status')
     } finally {
-      setUpdatingTicket(null)
+      setUpdatingTicket(null) // Clear loading state
     }
   }
 
-  const myTickets = tickets.filter(t => t.assigned_to === user.id)
-  const slaViolationTickets = myTickets.filter(t => t.sla_violated && t.status !== 'Closed')
-  const displayTickets = activeTab === 'myQueue' ? myTickets : tickets
 
+
+  // Show loading skeleton while fetching tickets
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="animate-pulse">
+          {/* Skeleton for page header */}
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+          {/* Skeleton for statistics cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
@@ -159,29 +111,19 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Technical Dashboard</h1>
-              <p className="text-sm text-gray-600">Welcome back, {user.name}</p>
-            </div>
-            <button
-              onClick={onLogout}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-            >
-              Sign Out
-            </button>
+      {/* Header with agent info and logout */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">IT ServiceDesk - Agent Portal</h1>
             <div className="flex items-center gap-4">
+              {/* User info display */}
               <div className="text-sm">
                 <span className="text-gray-600">Welcome, </span>
                 <span className="font-medium">{user.name}</span>
                 <span className="text-gray-500 ml-2">({user.role})</span>
               </div>
+              {/* Logout button */}
               <button
                 onClick={onLogout}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
@@ -193,99 +135,8 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('assigned')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'assigned'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              My Tickets ({assignedTickets.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('unassigned')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'unassigned'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Available Tickets ({unassignedTickets.length})
-            </button>
-          </nav>
-        </div>
-
-        {activeTab === 'assigned' && (
-          <div className="space-y-4">
-            {assignedTickets.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                No assigned tickets
-              </div>
-            ) : (
-              assignedTickets.map((ticket) => (
-                <div key={ticket.id} className="bg-white rounded-lg shadow p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
-                      <p className="text-sm text-gray-600">{ticket.id}</p>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      <select
-                        value={ticket.status}
-                        onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(ticket.status)}`}
-                      >
-                        <option value={ticket.status}>{ticket.status}</option>
-                        {getAvailableStatuses(ticket.status).map(status => (
-                          <option key={status} value={status}>{status}</option>
-                        ))}
-                      </select>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
-                        {ticket.priority}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-3">{ticket.description}</p>
-                  <div className="space-y-1 mb-3">
-                    {getTicketAlerts(ticket)}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">
-                      Created: {new Date(ticket.created_at).toLocaleDateString()}
-                    </span>
-                    <button
-                      onClick={() => setSelectedTicket(ticket)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {activeTab === 'unassigned' && (
-          <div className="space-y-4">
-            {unassignedTickets.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                No unassigned tickets
-              </div>
-            ) : (
-              unassignedTickets.map((ticket) => (
-                <div key={ticket.id} className="bg-white rounded-lg shadow p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
-                      <p className="text-sm text-gray-600">{ticket.id}</p>
-                    </div>
-                    <div className="flex gap-2">
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Search functionality for finding tickets quickly */}
         <div className="mb-6">
           <input
             type="text"
@@ -293,9 +144,10 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
             onChange={(e) => {
               const search = e.target.value.toLowerCase()
               if (!search) {
-                fetchTickets()
+                fetchTickets() // Reset to all tickets if search is cleared
                 return
               }
+              // Filter tickets based on search term
               const filtered = tickets.filter(t => 
                 t.id.toLowerCase().includes(search) ||
                 t.title.toLowerCase().includes(search) ||
@@ -307,11 +159,14 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           />
         </div>
 
+        {/* Agent performance metrics */}
         <div className="mb-6">
           <AgentPerformanceCard agentId={user.id} onCardClick={setModalData} tickets={tickets} />
         </div>
 
+        {/* Statistics cards for quick overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          {/* Assigned tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'My Assigned Tickets', data: myTickets })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Assigned Tickets</div>
@@ -321,6 +176,8 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
               {myTickets.length}
             </div>
           </div>
+          
+          {/* Total tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Total Tickets</div>
@@ -330,6 +187,8 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
               {tickets.length}
             </div>
           </div>
+          
+          {/* SLA violations card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Breached Tickets', data: tickets.filter(t => t.sla_violated) })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">SLA Breached</div>
@@ -341,6 +200,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           </div>
         </div>
 
+        {/* Tab navigation for different views */}
         <div className="mb-6 flex justify-between items-center">
           <div className="border-b border-gray-200">
             <nav className="flex gap-4">
@@ -360,6 +220,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           </div>
         </div>
 
+        {/* SLA violation alert section - only shown if agent has violated tickets */}
         {slaViolationTickets.length > 0 && (
           <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -385,14 +246,18 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           </div>
         )}
 
+
+        {/* Tickets list with priority sorting */}
         <div className="grid gap-4">
           {displayTickets.length === 0 ? (
+            /* Empty state when no tickets match current view */
             <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
               <div className="text-4xl mb-4">📄</div>
               <p className="text-lg font-medium mb-2">No tickets found</p>
               <p className="text-sm">There are no tickets to display in this view</p>
             </div>
           ) : (
+            /* Render tickets sorted by priority (Critical first) */
             displayTickets
               .sort((a, b) => {
                 const priorityOrder = { Critical: 4, High: 3, Medium: 2, Low: 1 }
@@ -400,17 +265,20 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
               })
               .map((ticket) => (
                 <div key={ticket.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+                  {/* Ticket header with title and status badges */}
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
                     </div>
+                    {/* Status and priority badges with SLA violation indicator */}
                     <div className="flex gap-2">
                       {ticket.sla_violated && (
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
                           SLA Violated
                         </span>
                       )}
+                      {/* Status badge with color coding */}
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
                         ticket.status === 'Open' ? 'bg-green-100 text-green-800' :
@@ -419,6 +287,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                       }`}>
                         {ticket.status}
                       </span>
+                      {/* Priority badge with color coding */}
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
                         ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :
@@ -429,38 +298,31 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Ticket description */}
                   <p className="text-gray-700 mb-3">{ticket.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">
-                      Created: {new Date(ticket.created_at).toLocaleDateString()}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedTicket(ticket)}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleTakeTicket(ticket.id)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-                      >
-                        Take Ticket
-                      </button>
+                  
+                  {/* Ticket metadata and action buttons */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-3">
                     <div className="flex gap-4 text-sm text-gray-500">
                       <span>Category: {ticket.category}</span>
                       <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
                     </div>
+                    
+                    {/* Action buttons - different options based on assignment and status */}
                     <div className="flex gap-2">
+                      {/* View details button - always available */}
                       <button
                         onClick={() => setSelectedTicket(ticket)}
                         className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                       >
                         View Details
                       </button>
+                      
+                      {/* Status update buttons - only for assigned, open tickets */}
                       {ticket.status !== 'Closed' && ticket.assigned_to === user.id && (
                         <>
+                          {/* Set pending button - only if not already pending */}
                           {ticket.status !== 'Pending' && (
                             <button
                               onClick={() => handleStatusUpdate(ticket.id, 'Pending')}
@@ -470,6 +332,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                               {updatingTicket === ticket.id ? 'Updating...' : 'Set Pending'}
                             </button>
                           )}
+                          {/* Resolve button - close the ticket */}
                           <button
                             onClick={() => handleStatusUpdate(ticket.id, 'Closed')}
                             disabled={updatingTicket === ticket.id}
@@ -484,23 +347,22 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                 </div>
               ))
             )}
-          </div>
-        )}
+        </div>
           )}
         </div>
       </main>
 
+      {/* Ticket detail dialog - opens when agent clicks "View Details" */}
       {selectedTicket && (
         <TicketDetailDialog
           ticket={selectedTicket}
           currentUser={user}
           onClose={() => setSelectedTicket(null)}
-          onUpdate={fetchTickets}
+          onUpdate={fetchTickets} // Refresh tickets if changes are made
         />
       )}
-    </div>
-  )
 
+      {/* Data modal for showing filtered ticket lists from statistics cards */}
       {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
     </div>
   )

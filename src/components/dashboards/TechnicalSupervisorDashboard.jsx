@@ -9,20 +9,43 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
+/**
+ * TechnicalSupervisorDashboard - Management interface for team leads and supervisors
+ * 
+ * Features:
+ * - Team performance monitoring and agent workload management
+ * - Ticket assignment and redistribution capabilities
+ * - SLA violation tracking and escalation management
+ * - Advanced analytics with charts and performance scorecards
+ * - Export functionality for reporting and compliance
+ * - Real-time dashboard with unassigned ticket alerts
+ * 
+ * Supervisor permissions:
+ * - Can view all tickets and assign them to agents
+ * - Can monitor team performance and SLA adherence
+ * - Can access advanced analytics and reporting
+ * - Can export data for management reporting
+ * - Cannot modify system settings or user accounts
+ */
 export default function TechnicalSupervisorDashboard({ user, onLogout }) {
-  const [tickets, setTickets] = useState([])
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [statusCounts, setStatusCounts] = useState({})
-  const [unassignedTickets, setUnassignedTickets] = useState([])
-  const [agentWorkload, setAgentWorkload] = useState([])
-  const [selectedTicket, setSelectedTicket] = useState(null)
-  const [modalData, setModalData] = useState(null)
+  // Main data state - tickets and analytics
+  const [tickets, setTickets] = useState([]) // All tickets in the system
+  const [statusCounts, setStatusCounts] = useState({}) // Ticket counts by status for charts
+  const [unassignedTickets, setUnassignedTickets] = useState([]) // Tickets needing assignment
+  const [agentWorkload, setAgentWorkload] = useState([]) // Agent performance and workload data
+  
+  // UI state for navigation and modals
+  const [activeTab, setActiveTab] = useState('dashboard') // Current view: dashboard, analytics, or allTickets
+  const [selectedTicket, setSelectedTicket] = useState(null) // Ticket detail dialog
+  const [modalData, setModalData] = useState(null) // Data modal for filtered views
 
+  // Load all data when component mounts
   useEffect(() => {
-    fetchTickets()
-    fetchAnalytics()
+    fetchTickets() // Get all tickets for overview
+    fetchAnalytics() // Get performance metrics and workload data
   }, [])
 
+  // Fetch all tickets - supervisors need full visibility for team management
   const fetchTickets = async () => {
     try {
       const response = await fetch(`${API_URL}/tickets`)
@@ -33,12 +56,14 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
+  // Fetch analytics data for dashboard and team management
   const fetchAnalytics = async () => {
     try {
+      // Parallel fetch for better performance
       const [statusRes, unassignedRes, workloadRes] = await Promise.all([
-        fetch(`${API_URL}/analytics/ticket-status-counts`),
-        fetch(`${API_URL}/analytics/unassigned-tickets`),
-        fetch(`${API_URL}/analytics/agent-workload`)
+        fetch(`${API_URL}/analytics/ticket-status-counts`), // Status distribution for charts
+        fetch(`${API_URL}/analytics/unassigned-tickets`),   // Tickets needing assignment
+        fetch(`${API_URL}/analytics/agent-workload`)        // Agent performance metrics
       ])
       
       setStatusCounts(await statusRes.json())
@@ -50,6 +75,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
+  // Handle ticket assignment to agents - key supervisor function
   const handleAssignTicket = async (ticketId, agentId) => {
     try {
       await fetch(`${API_URL}/tickets/${ticketId}`, {
@@ -57,10 +83,11 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assigned_to: agentId,
-          performed_by: user.id,
+          performed_by: user.id,      // Track who made the assignment
           performed_by_name: user.name
         })
       })
+      // Refresh both tickets and analytics to update workload distribution
       fetchTickets()
       fetchAnalytics()
     } catch (err) {
@@ -68,20 +95,26 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
+  // Transform status counts into chart-friendly format
   const chartData = Object.entries(statusCounts).map(([status, count]) => ({ status, count }))
 
+  // Export tickets data to Excel for reporting and analysis
   const handleExportExcel = async () => {
     try {
       const response = await fetch(`${API_URL}/export/tickets/excel`, {
         method: 'GET'
       })
       const blob = await response.blob()
+      
+      // Create download link and trigger download
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `tickets_${new Date().toISOString().split('T')[0]}.csv`
       document.body.appendChild(a)
       a.click()
+      
+      // Cleanup
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (err) {
@@ -91,11 +124,13 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header with supervisor info and logout */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">IT ServiceDesk - Supervisor Portal</h1>
             <div className="flex items-center gap-4">
+              {/* User info with role display */}
               <div className="text-sm">
                 <span className="text-gray-600">Welcome, </span>
                 <span className="font-medium">{user.name}</span>
@@ -113,6 +148,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Global search functionality */}
         <div className="mb-6">
           <input
             type="text"
@@ -120,9 +156,10 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
             onChange={(e) => {
               const search = e.target.value.toLowerCase()
               if (!search) {
-                fetchTickets()
+                fetchTickets() // Reset to all tickets if search is cleared
                 return
               }
+              // Filter tickets based on search criteria
               const filtered = tickets.filter(t => 
                 t.id.toLowerCase().includes(search) ||
                 t.title.toLowerCase().includes(search) ||
@@ -134,25 +171,33 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
           />
         </div>
 
+        {/* High-level statistics cards for quick overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {/* Total tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
             <div className="text-sm text-gray-600">All Tickets</div>
             <div className="text-3xl font-bold text-gray-900 mt-2">
               {tickets.length}
             </div>
           </div>
+          
+          {/* Open tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Open Tickets', data: tickets.filter(t => t.status !== 'Closed') })}>
             <div className="text-sm text-gray-600">Open Tickets</div>
             <div className="text-3xl font-bold text-blue-600 mt-2">
               {tickets.filter(t => t.status !== 'Closed').length}
             </div>
           </div>
+          
+          {/* Resolved tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Resolved Tickets', data: tickets.filter(t => t.status === 'Closed') })}>
             <div className="text-sm text-gray-600">Resolved Tickets</div>
             <div className="text-3xl font-bold text-green-600 mt-2">
               {tickets.filter(t => t.status === 'Closed').length}
             </div>
           </div>
+          
+          {/* SLA violations card - critical for supervisor attention */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Violated Tickets', data: tickets.filter(t => t.sla_violated) })}>
             <div className="text-sm text-gray-600">SLA Violated</div>
             <div className="text-3xl font-bold text-red-600 mt-2">
@@ -161,20 +206,24 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
           </div>
         </div>
 
+        {/* Tab navigation for different supervisor views */}
         <div className="mb-6 border-b border-gray-200">
           <nav className="flex gap-4">
+            {/* Main dashboard with team management */}
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`px-4 py-2 font-medium ${activeTab === 'dashboard' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
             >
               Dashboard
             </button>
+            {/* Advanced analytics and reporting */}
             <button
               onClick={() => setActiveTab('analytics')}
               className={`px-4 py-2 font-medium ${activeTab === 'analytics' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
             >
               Analytics
             </button>
+            {/* Complete ticket listing */}
             <button
               onClick={() => setActiveTab('allTickets')}
               className={`px-4 py-2 font-medium ${activeTab === 'allTickets' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}

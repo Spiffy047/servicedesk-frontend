@@ -1,4 +1,4 @@
-// SLA target response times in hours
+// SLA response time targets by priority level
 export const SLA_TARGETS = {
   Critical: 4,
   High: 8,
@@ -6,14 +6,13 @@ export const SLA_TARGETS = {
   Low: 72
 }
 
-// Calculate how many hours a ticket has been open
 export const calculateHoursOpen = (createdAt) => {
   const now = new Date()
   const created = new Date(createdAt)
   return (now - created) / (1000 * 60 * 60)
 }
 
-// Check if a ticket has violated its SLA target
+// Returns true if ticket exceeds SLA target for its priority
 export const checkSLAViolation = (ticket) => {
   if (ticket.status === 'Closed') return false
   
@@ -23,7 +22,7 @@ export const checkSLAViolation = (ticket) => {
   return hoursOpen > target
 }
 
-// Categorize tickets into aging buckets for dashboard display
+// Groups tickets by age ranges with color coding
 export const getAgingBucket = (createdAt) => {
   const hoursOpen = calculateHoursOpen(createdAt)
   
@@ -33,7 +32,6 @@ export const getAgingBucket = (createdAt) => {
   return { range: '72+ hours', color: 'red' }
 }
 
-// Get Tailwind CSS classes for aging badges
 export const getAgingBadgeClass = (createdAt) => {
   const bucket = getAgingBucket(createdAt)
   
@@ -47,7 +45,7 @@ export const getAgingBadgeClass = (createdAt) => {
   return colorClasses[bucket.color]
 }
 
-// Format hours into human-readable time strings
+// Converts hours to readable format (e.g., "2d 5h", "30m")
 export const formatHoursOpen = (hoursOpen) => {
   if (hoursOpen < 1) {
     return `${Math.round(hoursOpen * 60)}m`

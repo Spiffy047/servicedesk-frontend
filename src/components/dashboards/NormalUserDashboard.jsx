@@ -5,9 +5,8 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-// Dashboard for end users to create and manage their support tickets
+// End user dashboard for ticket creation and management
 export default function NormalUserDashboard({ user }) {
-  // Main data and UI state
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -22,7 +21,6 @@ export default function NormalUserDashboard({ user }) {
     fetchTickets()
   }, [user])
 
-  // Fetch user's tickets
   const fetchTickets = async () => {
     try {
       setLoading(true)
@@ -37,7 +35,6 @@ export default function NormalUserDashboard({ user }) {
     }
   }
 
-  // Handle ticket creation
   const handleCreateTicket = async (e) => {
     e.preventDefault()
     const formData = new FormData(e.target)
@@ -73,7 +70,6 @@ export default function NormalUserDashboard({ user }) {
     }
   }
 
-  // Show loading skeleton while fetching tickets
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -94,15 +90,13 @@ export default function NormalUserDashboard({ user }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page header with welcome message */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Welcome, {user.name}</h1>
           <p className="text-gray-600 mt-2">Manage your support tickets and track their progress</p>
         </div>
 
-        {/* Statistics cards - clickable to show detailed data */}
+        {/* Statistics overview cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {/* Total tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All My Tickets', data: tickets })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Total Tickets</div>
@@ -110,7 +104,6 @@ export default function NormalUserDashboard({ user }) {
             </div>
             <div className="text-3xl font-bold text-blue-600 mt-2">{tickets.length}</div>
           </div>
-          {/* Open tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Open Tickets', data: tickets.filter(t => t.status === 'Open') })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Open</div>
@@ -120,7 +113,6 @@ export default function NormalUserDashboard({ user }) {
               {tickets.filter(t => t.status === 'Open').length}
             </div>
           </div>
-          {/* Pending tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Pending Tickets', data: tickets.filter(t => t.status === 'Pending') })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Pending</div>
@@ -130,7 +122,6 @@ export default function NormalUserDashboard({ user }) {
               {tickets.filter(t => t.status === 'Pending').length}
             </div>
           </div>
-          {/* SLA violated tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Past SLA Tickets', data: tickets.filter(t => t.sla_violated) })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Past SLA</div>
@@ -142,7 +133,6 @@ export default function NormalUserDashboard({ user }) {
           </div>
         </div>
 
-        {/* Tickets section header with create button */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-900">My Tickets</h2>
           <button
@@ -153,10 +143,8 @@ export default function NormalUserDashboard({ user }) {
           </button>
         </div>
 
-        {/* Tickets list or empty state */}
         <div className="grid gap-4">
           {tickets.length === 0 ? (
-            /* Empty state when user has no tickets */
             <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
               <p className="mb-4">You haven't created any tickets yet.</p>
               <button
@@ -167,18 +155,14 @@ export default function NormalUserDashboard({ user }) {
               </button>
             </div>
           ) : (
-            /* Render each ticket as a card */
             tickets.map((ticket) => (
               <div key={ticket.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
-                {/* Ticket header with title and status badges */}
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
                     <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
                   </div>
-                  {/* Status and priority badges */}
                   <div className="flex gap-2">
-                    {/* Status badge with color coding */}
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
                       ticket.status === 'Open' ? 'bg-green-100 text-green-800' :
@@ -187,7 +171,6 @@ export default function NormalUserDashboard({ user }) {
                     }`}>
                       {ticket.status}
                     </span>
-                    {/* Priority badge with color coding */}
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
                       ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :
@@ -198,17 +181,14 @@ export default function NormalUserDashboard({ user }) {
                     </span>
                   </div>
                 </div>
-                {/* Ticket description */}
                 <p className="text-gray-700 mb-3">{ticket.description}</p>
                 
-                {/* Ticket metadata and actions */}
                 <div className="flex justify-between items-center">
                   <div className="flex gap-4 text-sm text-gray-500">
                     <span>Category: {ticket.category}</span>
                     <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
                     {ticket.assigned_to && <span>Assigned to: Agent {ticket.assigned_to}</span>}
                   </div>
-                  {/* View details button opens ticket dialog */}
                   <button
                     onClick={() => setSelectedTicket(ticket)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
@@ -217,7 +197,6 @@ export default function NormalUserDashboard({ user }) {
                   </button>
                 </div>
                 
-                {/* Resolution info for closed tickets */}
                 {ticket.status === 'Closed' && ticket.resolved_at && (
                   <div className="mt-3 pt-3 border-t text-sm text-green-600">
                     ✓ Resolved on {new Date(ticket.resolved_at).toLocaleDateString()}
@@ -229,12 +208,11 @@ export default function NormalUserDashboard({ user }) {
         </div>
       </main>
 
-      {/* Create ticket modal */}
+      {/* Ticket creation modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              {/* Modal header */}
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Create New Ticket</h2>
                 <button
@@ -245,15 +223,12 @@ export default function NormalUserDashboard({ user }) {
                 </button>
               </div>
 
-              {/* Ticket creation form */}
               <form onSubmit={handleCreateTicket} className="space-y-4">
-                {/* Error message display */}
                 {createError && (
                   <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
                     {createError}
                   </div>
                 )}
-                {/* Title field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Title <span className="text-red-500">*</span>
@@ -267,7 +242,6 @@ export default function NormalUserDashboard({ user }) {
                   />
                 </div>
 
-                {/* Description field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description <span className="text-red-500">*</span>
@@ -281,9 +255,7 @@ export default function NormalUserDashboard({ user }) {
                   />
                 </div>
 
-                {/* Priority and category selection */}
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Priority dropdown */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Priority <span className="text-red-500">*</span>
@@ -300,7 +272,6 @@ export default function NormalUserDashboard({ user }) {
                     </select>
                   </div>
 
-                  {/* Category dropdown */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Category <span className="text-red-500">*</span>
@@ -319,15 +290,12 @@ export default function NormalUserDashboard({ user }) {
                   </div>
                 </div>
 
-                {/* Auto-assignment info box */}
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-sm text-blue-800">
                   <p className="font-medium">Auto-Assignment Enabled</p>
                   <p className="mt-1">This ticket will be automatically assigned to the agent with the least workload.</p>
                 </div>
 
-                {/* Form action buttons */}
                 <div className="flex gap-3 pt-4">
-                  {/* Submit button with loading state */}
                   <button
                     type="submit"
                     disabled={creating}
@@ -335,7 +303,6 @@ export default function NormalUserDashboard({ user }) {
                   >
                     {creating ? 'Creating...' : 'Create Ticket'}
                   </button>
-                  {/* Cancel button */}
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
@@ -350,17 +317,15 @@ export default function NormalUserDashboard({ user }) {
         </div>
       )}
 
-      {/* Ticket detail dialog - opens when user clicks "View Details" */}
       {selectedTicket && (
         <TicketDetailDialog
           ticket={selectedTicket}
           currentUser={user}
           onClose={() => setSelectedTicket(null)}
-          onUpdate={fetchTickets} // Refresh tickets if changes are made
+          onUpdate={fetchTickets}
         />
       )}
 
-      {/* Data modal for showing filtered ticket lists from statistics cards */}
       {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
     </div>
   )

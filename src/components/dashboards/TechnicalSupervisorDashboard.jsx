@@ -9,9 +9,8 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-// Dashboard for supervisors to manage team performance and ticket assignments
+// Supervisor dashboard for team management and analytics
 export default function TechnicalSupervisorDashboard({ user, onLogout }) {
-  // Data and UI state
   const [tickets, setTickets] = useState([])
   const [statusCounts, setStatusCounts] = useState({})
   const [unassignedTickets, setUnassignedTickets] = useState([])
@@ -25,7 +24,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     fetchAnalytics()
   }, [])
 
-  // Fetch all tickets
   const fetchTickets = async () => {
     try {
       const response = await fetch(`${API_URL}/tickets`)
@@ -36,7 +34,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
-  // Fetch analytics data
   const fetchAnalytics = async () => {
     try {
       const [statusRes, unassignedRes, workloadRes] = await Promise.all([
@@ -54,7 +51,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     }
   }
 
-  // Handle ticket assignment to agents
   const handleAssignTicket = async (ticketId, agentId) => {
     try {
       await fetch(`${API_URL}/tickets/${ticketId}`, {
@@ -75,7 +71,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
 
   const chartData = Object.entries(statusCounts).map(([status, count]) => ({ status, count }))
 
-  // Export tickets to Excel
   const handleExportExcel = async () => {
     try {
       const response = await fetch(`${API_URL}/export/tickets/excel`, {
@@ -99,13 +94,11 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with supervisor info and logout */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">IT ServiceDesk - Supervisor Portal</h1>
             <div className="flex items-center gap-4">
-              {/* User info with role display */}
               <div className="text-sm">
                 <span className="text-gray-600">Welcome, </span>
                 <span className="font-medium">{user.name}</span>
@@ -123,7 +116,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Global search functionality */}
         <div className="mb-6">
           <input
             type="text"
@@ -131,10 +123,9 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
             onChange={(e) => {
               const search = e.target.value.toLowerCase()
               if (!search) {
-                fetchTickets() // Reset to all tickets if search is cleared
+                fetchTickets()
                 return
               }
-              // Filter tickets based on search criteria
               const filtered = tickets.filter(t => 
                 t.id.toLowerCase().includes(search) ||
                 t.title.toLowerCase().includes(search) ||
@@ -146,9 +137,7 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
           />
         </div>
 
-        {/* High-level statistics cards for quick overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {/* Total tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
             <div className="text-sm text-gray-600">All Tickets</div>
             <div className="text-3xl font-bold text-gray-900 mt-2">
@@ -156,7 +145,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
             </div>
           </div>
           
-          {/* Open tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Open Tickets', data: tickets.filter(t => t.status !== 'Closed') })}>
             <div className="text-sm text-gray-600">Open Tickets</div>
             <div className="text-3xl font-bold text-blue-600 mt-2">
@@ -164,7 +152,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
             </div>
           </div>
           
-          {/* Resolved tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Resolved Tickets', data: tickets.filter(t => t.status === 'Closed') })}>
             <div className="text-sm text-gray-600">Resolved Tickets</div>
             <div className="text-3xl font-bold text-green-600 mt-2">
@@ -172,7 +159,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
             </div>
           </div>
           
-          {/* SLA violations card - critical for supervisor attention */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Violated Tickets', data: tickets.filter(t => t.sla_violated) })}>
             <div className="text-sm text-gray-600">SLA Violated</div>
             <div className="text-3xl font-bold text-red-600 mt-2">
@@ -181,24 +167,20 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
           </div>
         </div>
 
-        {/* Tab navigation for different supervisor views */}
         <div className="mb-6 border-b border-gray-200">
           <nav className="flex gap-4">
-            {/* Main dashboard with team management */}
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`px-4 py-2 font-medium ${activeTab === 'dashboard' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
             >
               Dashboard
             </button>
-            {/* Advanced analytics and reporting */}
             <button
               onClick={() => setActiveTab('analytics')}
               className={`px-4 py-2 font-medium ${activeTab === 'analytics' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
             >
               Analytics
             </button>
-            {/* Complete ticket listing */}
             <button
               onClick={() => setActiveTab('allTickets')}
               className={`px-4 py-2 font-medium ${activeTab === 'allTickets' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}

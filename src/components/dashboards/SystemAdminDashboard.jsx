@@ -5,11 +5,7 @@ import AgentPerformanceScorecard from '../analytics/AgentPerformanceScorecard'
 
 const API_URL = 'http://localhost:5002/api'
 
-/**
- * SystemAdminDashboard - Administrative dashboard for system management
- * Provides user management, system health monitoring, and analytics
- * @returns {JSX.Element} The rendered admin dashboard component
- */
+// System admin dashboard with full user management and system control
 export default function SystemAdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [users, setUsers] = useState([])
@@ -164,6 +160,7 @@ export default function SystemAdminDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <SLAAdherenceCard />
+              
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold mb-4">System Health</h3>
                 <div className="space-y-3">

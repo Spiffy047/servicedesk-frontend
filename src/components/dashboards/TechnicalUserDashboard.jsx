@@ -6,9 +6,8 @@ import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-// Dashboard for IT agents to manage tickets and track performance
+// IT agent dashboard for ticket management and performance tracking
 export default function TechnicalUserDashboard({ user, onLogout }) {
-  // Data and UI state
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -21,7 +20,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
     fetchTickets()
   }, [user])
 
-  // Fetch all tickets - agents can see all tickets
   const fetchTickets = async () => {
     try {
       setLoading(true)
@@ -36,12 +34,10 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
     }
   }
 
-  // Filter tickets for different views
   const myTickets = tickets.filter(t => t.assigned_to === user.id)
   const slaViolationTickets = myTickets.filter(t => t.sla_violated && t.status !== 'Closed')
   const displayTickets = activeTab === 'myQueue' ? myTickets : tickets
 
-  // Handle status updates for assigned tickets
   const handleStatusUpdate = async (ticketId, newStatus) => {
     setUpdatingTicket(ticketId)
     
@@ -69,7 +65,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
 
 
 
-  // Show loading skeleton while fetching tickets
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -89,19 +84,16 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with agent info and logout */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">IT ServiceDesk - Agent Portal</h1>
             <div className="flex items-center gap-4">
-              {/* User info display */}
               <div className="text-sm">
                 <span className="text-gray-600">Welcome, </span>
                 <span className="font-medium">{user.name}</span>
                 <span className="text-gray-500 ml-2">({user.role})</span>
               </div>
-              {/* Logout button */}
               <button
                 onClick={onLogout}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
@@ -114,7 +106,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Search functionality for finding tickets quickly */}
+        {/* Ticket search */}
         <div className="mb-6">
           <input
             type="text"
@@ -122,10 +114,9 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
             onChange={(e) => {
               const search = e.target.value.toLowerCase()
               if (!search) {
-                fetchTickets() // Reset to all tickets if search is cleared
+                fetchTickets()
                 return
               }
-              // Filter tickets based on search term
               const filtered = tickets.filter(t => 
                 t.id.toLowerCase().includes(search) ||
                 t.title.toLowerCase().includes(search) ||
@@ -137,14 +128,11 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           />
         </div>
 
-        {/* Agent performance metrics */}
         <div className="mb-6">
           <AgentPerformanceCard agentId={user.id} onCardClick={setModalData} tickets={tickets} />
         </div>
 
-        {/* Statistics cards for quick overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {/* Assigned tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'My Assigned Tickets', data: myTickets })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Assigned Tickets</div>
@@ -155,7 +143,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
             </div>
           </div>
           
-          {/* Total tickets card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">Total Tickets</div>
@@ -166,7 +153,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
             </div>
           </div>
           
-          {/* SLA violations card */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Breached Tickets', data: tickets.filter(t => t.sla_violated) })}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">SLA Breached</div>
@@ -178,7 +164,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           </div>
         </div>
 
-        {/* Tab navigation for different views */}
         <div className="mb-6 flex justify-between items-center">
           <div className="border-b border-gray-200">
             <nav className="flex gap-4">
@@ -198,7 +183,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
           </div>
         </div>
 
-        {/* SLA violation alert section - only shown if agent has violated tickets */}
         {slaViolationTickets.length > 0 && (
           <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -225,17 +209,14 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
         )}
 
 
-        {/* Tickets list with priority sorting */}
         <div className="grid gap-4">
           {displayTickets.length === 0 ? (
-            /* Empty state when no tickets match current view */
             <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
               <div className="text-4xl mb-4">📄</div>
               <p className="text-lg font-medium mb-2">No tickets found</p>
               <p className="text-sm">There are no tickets to display in this view</p>
             </div>
           ) : (
-            /* Render tickets sorted by priority (Critical first) */
             displayTickets
               .sort((a, b) => {
                 const priorityOrder = { Critical: 4, High: 3, Medium: 2, Low: 1 }
@@ -243,20 +224,17 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
               })
               .map((ticket) => (
                 <div key={ticket.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
-                  {/* Ticket header with title and status badges */}
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
                     </div>
-                    {/* Status and priority badges with SLA violation indicator */}
                     <div className="flex gap-2">
                       {ticket.sla_violated && (
                         <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
                           SLA Violated
                         </span>
                       )}
-                      {/* Status badge with color coding */}
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
                         ticket.status === 'Open' ? 'bg-green-100 text-green-800' :
@@ -265,7 +243,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                       }`}>
                         {ticket.status}
                       </span>
-                      {/* Priority badge with color coding */}
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
                         ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :
@@ -277,19 +254,15 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                     </div>
                   </div>
                   
-                  {/* Ticket description */}
                   <p className="text-gray-700 mb-3">{ticket.description}</p>
                   
-                  {/* Ticket metadata and action buttons */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-3">
                     <div className="flex gap-4 text-sm text-gray-500">
                       <span>Category: {ticket.category}</span>
                       <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
                     </div>
                     
-                    {/* Action buttons - different options based on assignment and status */}
                     <div className="flex gap-2">
-                      {/* View details button - always available */}
                       <button
                         onClick={() => setSelectedTicket(ticket)}
                         className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
@@ -297,10 +270,8 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                         View Details
                       </button>
                       
-                      {/* Status update buttons - only for assigned, open tickets */}
                       {ticket.status !== 'Closed' && ticket.assigned_to === user.id && (
                         <>
-                          {/* Set pending button - only if not already pending */}
                           {ticket.status !== 'Pending' && (
                             <button
                               onClick={() => handleStatusUpdate(ticket.id, 'Pending')}
@@ -310,7 +281,6 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                               {updatingTicket === ticket.id ? 'Updating...' : 'Set Pending'}
                             </button>
                           )}
-                          {/* Resolve button - close the ticket */}
                           <button
                             onClick={() => handleStatusUpdate(ticket.id, 'Closed')}
                             disabled={updatingTicket === ticket.id}
@@ -330,17 +300,15 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
         </div>
       </main>
 
-      {/* Ticket detail dialog - opens when agent clicks "View Details" */}
       {selectedTicket && (
         <TicketDetailDialog
           ticket={selectedTicket}
           currentUser={user}
           onClose={() => setSelectedTicket(null)}
-          onUpdate={fetchTickets} // Refresh tickets if changes are made
+          onUpdate={fetchTickets}
         />
       )}
 
-      {/* Data modal for showing filtered ticket lists from statistics cards */}
       {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
     </div>
   )

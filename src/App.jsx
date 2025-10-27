@@ -6,16 +6,14 @@ import SystemAdminDashboard from './components/dashboards/SystemAdminDashboard'
 
 const API_URL = 'http://localhost:5002/api'
 
-// Main App component - handles authentication and role-based routing
+// Main authentication and routing component
 function App() {
-  // Authentication state
   const [user, setUser] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Handle user login
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -42,7 +40,6 @@ function App() {
     }
   }
 
-  // Clear user session
   const handleLogout = () => {
     setUser(null)
     setEmail('')
@@ -50,7 +47,7 @@ function App() {
     localStorage.removeItem('token')
   }
 
-  // Show login form if not authenticated
+  // Login form for unauthenticated users
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -106,7 +103,7 @@ function App() {
     )
   }
 
-  // Route to appropriate dashboard based on user role
+  // Role-based dashboard routing
   switch (user.role) {
     case 'Normal User':
       return <NormalUserDashboard user={user} onLogout={handleLogout} />

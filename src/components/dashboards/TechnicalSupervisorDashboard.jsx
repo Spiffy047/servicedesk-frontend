@@ -1,86 +1,76 @@
 import { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import SLAAdherenceCard from '../analytics/SLAAdherenceCard'
 import AgentPerformanceScorecard from '../analytics/AgentPerformanceScorecard'
+import TicketAgingAnalysis from '../analytics/TicketAgingAnalysis'
 import RealtimeSLADashboard from '../analytics/RealtimeSLADashboard'
+import TicketDetailDialog from '../tickets/TicketDetailDialog'
 import DataModal from '../common/DataModal'
 
 const API_URL = 'http://localhost:5002/api'
 
-/**
- * TechnicalSupervisorDashboard - Dashboard for technical supervisors to manage tickets and agents
- * @param {Object} props - Component props
- * @param {Object} props.user - User object with name and role
- * @param {Function} props.onLogout - Logout callback function
- * @returns {JSX.Element} The rendered supervisor dashboard component
- */
 export default function TechnicalSupervisorDashboard({ user, onLogout }) {
   const [tickets, setTickets] = useState([])
-  const [agentWorkload, setAgentWorkload] = useState([])
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [statusCounts, setStatusCounts] = useState({})
+  const [unassignedTickets, setUnassignedTickets] = useState([])
+  const [agentWorkload, setAgentWorkload] = useState([])
+  const [selectedTicket, setSelectedTicket] = useState(null)
   const [modalData, setModalData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchTickets()
-    fetchAgentWorkload()
+    fetchAnalytics()
   }, [])
 
   const fetchTickets = async () => {
     try {
-      setLoading(true)
       const response = await fetch(`${API_URL}/tickets`)
       const data = await response.json()
       setTickets(data)
-    } catch (error) {
-      setError('Failed to load tickets')
-      console.error('Failed to fetch tickets:', error)
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      console.error('Failed to fetch tickets:', err)
     }
   }
 
-  const fetchAgentWorkload = async () => {
+  const fetchAnalytics = async () => {
     try {
-      const response = await fetch(`${API_URL}/analytics/agent-workload`)
-      const data = await response.json()
-      setAgentWorkload(data)
-    } catch (error) {
-      console.error('Failed to fetch agent workload:', error)
+      const [statusRes, unassignedRes, workloadRes] = await Promise.all([
+        fetch(`${API_URL}/analytics/ticket-status-counts`),
+        fetch(`${API_URL}/analytics/unassigned-tickets`),
+        fetch(`${API_URL}/analytics/agent-workload`)
+      ])
+      
+      setStatusCounts(await statusRes.json())
+      const unassigned = await unassignedRes.json()
+      setUnassignedTickets(unassigned.tickets || [])
+      setAgentWorkload(await workloadRes.json())
+    } catch (err) {
+      console.error('Failed to fetch analytics:', err)
     }
   }
 
   const handleAssignTicket = async (ticketId, agentId) => {
     try {
-      const response = await fetch(`${API_URL}/tickets/${ticketId}/assign`, {
+      await fetch(`${API_URL}/tickets/${ticketId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent_id: agentId })
+        body: JSON.stringify({
+          assigned_to: agentId,
+          performed_by: user.id,
+          performed_by_name: user.name
+        })
       })
-      
-      if (response.ok) {
-        fetchTickets()
-        fetchAgentWorkload()
-      }
-    } catch (error) {
-      console.error('Failed to assign ticket:', error)
+      fetchTickets()
+      fetchAnalytics()
+    } catch (err) {
+      console.error('Failed to assign ticket:', err)
     }
   }
 
-  const statusCounts = tickets.reduce((acc, ticket) => {
-    acc[ticket.status] = (acc[ticket.status] || 0) + 1
-    return acc
-  }, {})
+  const chartData = Object.entries(statusCounts).map(([status, count]) => ({ status, count }))
 
-  const unassignedTickets = tickets.filter(t => !t.assigned_to)
-  
-  const chartData = Object.entries(statusCounts).map(([status, count]) => ({
-    status,
-    count
-  }))
-
-  const exportTickets = async () => {
+  const handleExportExcel = async () => {
     try {
       const response = await fetch(`${API_URL}/export/tickets/excel`, {
         method: 'GET'
@@ -97,21 +87,6 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
     } catch (err) {
       console.error('Failed to export:', err)
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -159,40 +134,28 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'All Tickets', data: tickets })}>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">All Tickets</div>
-              <div className="text-gray-600">🎫</div>
-            </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-sm text-gray-600">All Tickets</div>
+            <div className="text-3xl font-bold text-gray-900 mt-2">
               {tickets.length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Open Tickets', data: tickets.filter(t => t.status !== 'Closed') })}>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">Open Tickets</div>
-              <div className="text-blue-600">🟢</div>
-            </div>
-            <div className="text-3xl font-bold text-blue-600">
+            <div className="text-sm text-gray-600">Open Tickets</div>
+            <div className="text-3xl font-bold text-blue-600 mt-2">
               {tickets.filter(t => t.status !== 'Closed').length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'Resolved Tickets', data: tickets.filter(t => t.status === 'Closed') })}>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">Resolved Tickets</div>
-              <div className="text-green-600">✓</div>
-            </div>
-            <div className="text-3xl font-bold text-green-600">
+            <div className="text-sm text-gray-600">Resolved Tickets</div>
+            <div className="text-3xl font-bold text-green-600 mt-2">
               {tickets.filter(t => t.status === 'Closed').length}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setModalData({ title: 'SLA Violated Tickets', data: tickets.filter(t => t.sla_violated) })}>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">SLA Violated</div>
-              <div className="text-red-600">⚠️</div>
-            </div>
-            <div className="text-3xl font-bold text-red-600">
+            <div className="text-sm text-gray-600">SLA Violated</div>
+            <div className="text-3xl font-bold text-red-600 mt-2">
               {tickets.filter(t => t.sla_violated).length}
             </div>
           </div>
@@ -293,107 +256,173 @@ export default function TechnicalSupervisorDashboard({ user, onLogout }) {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Active Tickets</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Closed Today</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Response Time</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Active</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Closed</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">SLA Violations</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Performance</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {agentWorkload.map(agent => (
-                      <tr key={agent.agent_id}>
-                        <td className="px-4 py-4 whitespace-nowrap font-medium">{agent.name}</td>
-                        <td className="px-4 py-4 whitespace-nowrap">{agent.active_tickets}</td>
-                        <td className="px-4 py-4 whitespace-nowrap">{agent.closed_today || 0}</td>
-                        <td className="px-4 py-4 whitespace-nowrap">{agent.avg_response_time || 'N/A'}</td>
-                      </tr>
-                    ))}
+                    {agentWorkload.map(agent => {
+                      const agentTickets = tickets.filter(t => t.assigned_to === agent.agent_id)
+                      const slaViolations = agentTickets.filter(t => t.sla_violated).length
+                      const score = (agent.closed_tickets * 10) - (slaViolations * 5)
+                      const rating = score >= 50 ? 'Excellent' : score >= 30 ? 'Good' : score >= 15 ? 'Average' : 'Needs Improvement'
+                      const ratingColor = score >= 50 ? 'text-green-600' : score >= 30 ? 'text-blue-600' : score >= 15 ? 'text-yellow-600' : 'text-red-600'
+                      
+                      return (
+                        <tr key={agent.agent_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setModalData({ title: `${agent.name}'s Tickets`, data: agentTickets })}>
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-gray-900">{agent.name}</div>
+                            <div className="text-xs text-gray-500">{agent.email}</div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="text-lg font-semibold text-blue-600">{agent.active_tickets}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="text-lg font-semibold text-green-600">{agent.closed_tickets}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-lg font-semibold ${slaViolations > 0 ? 'text-red-600' : 'text-gray-400'}`}>{slaViolations}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <div className={`font-semibold ${ratingColor}`}>{rating}</div>
+                            <div className="text-xs text-gray-500">Score: {Math.max(0, score)}</div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-4">Agents with SLA Violations</h3>
+              <div className="space-y-3">
+                {agentWorkload
+                  .filter(agent => {
+                    const agentViolations = tickets.filter(t => t.assigned_to === agent.agent_id && t.sla_violated).length
+                    return agentViolations > 0
+                  })
+                  .map(agent => {
+                    const agentViolations = tickets.filter(t => t.assigned_to === agent.agent_id && t.sla_violated)
+                    return (
+                      <div key={agent.agent_id} className="flex justify-between items-center p-3 bg-red-50 rounded border border-red-200">
+                        <div>
+                          <div className="font-medium text-gray-900">{agent.name}</div>
+                          <div className="text-sm text-gray-600">{agent.email}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-red-600">{agentViolations.length}</div>
+                          <div className="text-xs text-gray-600">SLA violations</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                {agentWorkload.filter(agent => {
+                  const agentViolations = tickets.filter(t => t.assigned_to === agent.agent_id && t.sla_violated).length
+                  return agentViolations > 0
+                }).length === 0 && (
+                  <div className="text-center text-gray-500 py-4">
+                    ✓ No agents with SLA violations
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div onClick={() => setModalData({ title: 'SLA Adherence Details', data: tickets })}>
+              <SLAAdherenceCard />
             </div>
           </div>
         )}
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <AgentPerformanceScorecard />
             <RealtimeSLADashboard onCardClick={setModalData} />
+            <AgentPerformanceScorecard />
+            <TicketAgingAnalysis />
+          </div>
+        )}
+
+        {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
+
+        {activeTab === 'dashboard' && (
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={handleExportExcel}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+            >
+              📊 Export Excel
+            </button>
           </div>
         )}
 
         {activeTab === 'allTickets' && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-xl font-semibold">All Tickets</h2>
-              <button
-                onClick={exportTickets}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Export CSV
-              </button>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned To</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {tickets.map(ticket => (
-                      <tr key={ticket.id}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium">{ticket.id}</td>
-                        <td className="px-6 py-4">{ticket.title}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
-                            ticket.status === 'Open' ? 'bg-green-100 text-green-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {ticket.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
-                            ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {ticket.priority}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {ticket.assigned_to ? `Agent ${ticket.assigned_to}` : 'Unassigned'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(ticket.created_at).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="grid gap-4">
+            {tickets.length === 0 ? (
+              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                No tickets found
               </div>
-            </div>
+            ) : (
+              tickets.map((ticket) => (
+                <div key={ticket.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
+                        ticket.status === 'Open' ? 'bg-green-100 text-green-800' :
+                        ticket.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {ticket.status}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
+                        ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                        ticket.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {ticket.priority}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-3">{ticket.description}</p>
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-4 text-sm text-gray-500">
+                      <span>Category: {ticket.category}</span>
+                      <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
+                      {ticket.assigned_to && <span>Assigned to: Agent {ticket.assigned_to}</span>}
+                    </div>
+                    <button
+                      onClick={() => setSelectedTicket(ticket)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
       </main>
 
-      {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
+      {selectedTicket && (
+        <TicketDetailDialog
+          ticket={selectedTicket}
+          currentUser={user}
+          onClose={() => setSelectedTicket(null)}
+          onUpdate={() => {
+            fetchTickets()
+            fetchAnalytics()
+          }}
+        />
+      )}
     </div>
   )
-}
-
-TechnicalSupervisorDashboard.propTypes = {
-  user: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    role: PropTypes.string.isRequired
-  }).isRequired,
-  onLogout: PropTypes.func.isRequired
 }

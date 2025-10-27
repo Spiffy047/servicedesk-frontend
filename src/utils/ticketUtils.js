@@ -1,4 +1,4 @@
-// Ticket workflow utilities
+
 
 export const TICKET_STATUSES = {
   NEW: 'New',
@@ -89,15 +89,10 @@ export const validateFileUpload = (file, limits) => {
 export const getFileIcon = (filename) => {
   const extension = filename.split('.').pop().toLowerCase()
   const icons = {
-    // Images
     png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', svg: '🖼️',
-    // Documents  
     pdf: '📄', doc: '📄', docx: '📄', txt: '📄',
-    // Archives
     zip: '📦', rar: '📦', '7z': '📦',
-    // Code
     js: '💻', py: '💻', html: '💻', css: '💻',
-    // Logs
     log: '📋', csv: '📋'
   }
   return icons[extension] || '📎'

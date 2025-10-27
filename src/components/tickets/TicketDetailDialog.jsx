@@ -1,21 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import PropTypes from 'prop-types'
+import { useState, useEffect, useRef } from 'react'
 
 const API_URL = 'http://localhost:5002/api'
-
-const formatRelativeTime = (date) => {
-  const now = new Date()
-  const diff = now - new Date(date)
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-  
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 7) return `${days}d ago`
-  return new Date(date).toLocaleDateString()
-}
 
 export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpdate }) {
   const [messages, setMessages] = useState([])
@@ -26,25 +11,14 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [agents, setAgents] = useState([])
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [autoRefresh, setAutoRefresh] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      await Promise.all([
-        fetchMessages(),
-        fetchActivities(),
-        fetchAgents(),
-        fetchAttachments()
-      ])
-      setLoading(false)
-    }
-    loadData()
+    fetchMessages()
+    fetchActivities()
+    fetchAgents()
+    fetchAttachments()
   }, [ticket.id])
 
   useEffect(() => {
@@ -53,33 +27,15 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     }
   }, [messages, activities])
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
-
-  useEffect(() => {
-    if (!autoRefresh) return
-    const interval = setInterval(() => {
-      fetchMessages()
-      fetchActivities()
-    }, 30000) // Refresh every 30 seconds
-    return () => clearInterval(interval)
-  }, [autoRefresh, fetchMessages])
-
-  const fetchMessages = useCallback(async () => {
+  const fetchMessages = async () => {
     try {
       const response = await fetch(`${API_URL}/messages/ticket/${ticket.id}/timeline`)
       const data = await response.json()
       setMessages(Array.isArray(data) ? data : data.messages || [])
     } catch (err) {
       console.error('Failed to fetch messages:', err)
-      setError('Failed to load messages')
     }
-  }, [ticket.id])
+  }
 
   const fetchActivities = async () => {
     try {
@@ -114,19 +70,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    const allowedTypes = ['image/', 'application/pdf', 'text/', 'application/msword']
-    
-    if (file.size > maxSize) {
-      setError('File size must be less than 10MB')
-      return
-    }
-    
-    if (!allowedTypes.some(type => file.type.startsWith(type))) {
-      setError('File type not supported')
-      return
-    }
 
     setUploading(true)
     const formData = new FormData()
@@ -150,7 +93,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!newMessage.trim() || newMessage.length > 1000) return
+    if (!newMessage.trim()) return
 
     try {
       const response = await fetch(`${API_URL}/messages`, {
@@ -175,8 +118,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   }
 
   const handleSaveChanges = async () => {
-    if (!confirm('Are you sure you want to save these changes?')) return
-    
     try {
       await fetch(`${API_URL}/tickets/${ticket.id}`, {
         method: 'PUT',
@@ -197,21 +138,16 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
 
   const timeline = [...messages, ...activities]
     .sort((a, b) => new Date(a.timestamp || a.created_at) - new Date(b.timestamp || b.created_at))
-    .filter(item => 
-      !searchTerm || 
-      (item.message && item.message.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
 
   const canEdit = currentUser.role !== 'Normal User' || (currentUser.role === 'Normal User' && ticket.created_by === currentUser.id && ticket.status !== 'Closed')
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="ticket-title">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         <div className="p-6 border-b">
           <div className="flex justify-between items-start">
             <div>
-              <h2 id="ticket-title" className="text-2xl font-bold text-gray-900">{ticket.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{ticket.title}</h2>
               <p className="text-sm text-gray-600 mt-1">{ticket.id}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -344,16 +280,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50" ref={scrollRef}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Timeline</h3>
-            <input
-              type="text"
-              placeholder="Search messages..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-1 border rounded text-sm w-48"
-            />
-          </div>
+          <h3 className="text-lg font-semibold mb-4">Timeline</h3>
           <div className="space-y-4">
             {timeline.map((item, index) => (
               <div key={item.id || index} className={`flex gap-3 ${item.type === 'message' || item.message ? 'items-start' : 'items-center'}`}>
@@ -375,8 +302,8 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
                               {item.sender_role}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-500" title={new Date(item.timestamp).toLocaleString()}>
-                            {formatRelativeTime(item.timestamp)}
+                          <span className="text-xs text-gray-500">
+                            {new Date(item.timestamp).toLocaleString()}
                           </span>
                         </div>
                         <p className="text-gray-700">{item.message}</p>
@@ -415,7 +342,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
               placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows="3"
-              maxLength={1000}
             />
             <div className="flex flex-col gap-2">
               <input
@@ -444,11 +370,4 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       </div>
     </div>
   )
-}
-
-TicketDetailDialog.propTypes = {
-  ticket: PropTypes.object.isRequired,
-  onClose: PropTypes.func.isRequired,
-  currentUser: PropTypes.object.isRequired,
-  onUpdate: PropTypes.func.isRequired
 }

@@ -3,16 +3,12 @@ import PropTypes from 'prop-types'
 
 const API_URL = 'http://localhost:5002/api'
 
-// 📈 AGENT PERFORMANCE CARD: Personal dashboard for agents to track their metrics
-// 💡 PRESENTATION HINT: "This shows agents their personal KPIs - like a report card"
+// Personal KPI dashboard for agents with performance metrics
 export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) {
-  // 📉 PERFORMANCE METRICS: Agent's personal KPI data
   const [performance, setPerformance] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // 📥 FETCH PERFORMANCE DATA: Get agent's KPIs from analytics API
-  // 💡 PRESENTATION HINT: "System calculates performance automatically based on ticket handling"
   const fetchPerformance = useCallback(() => {
     if (!agentId) return
     
@@ -24,13 +20,11 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         return res.json()
       })
       .then(data => {
-        // Find this agent's data from all agents
         const agentData = data.find(a => a.agent_id === agentId)
         if (!agentData) {
           throw new Error('Agent performance data not found')
         }
         
-        // Validate KPI fields exist
         const requiredFields = ['active_tickets', 'closed_tickets', 'avg_handle_time', 'sla_violations', 'performance_rating', 'performance_score']
         const missingFields = requiredFields.filter(field => agentData[field] === undefined || agentData[field] === null)
         if (missingFields.length > 0) {
@@ -84,8 +78,6 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
 
   if (!performance) return null
 
-  // 🎨 PERFORMANCE RATING COLORS: Visual feedback based on performance level
-  // 💡 PRESENTATION HINT: "Green = Excellent, Blue = Good, Yellow = Average, Red = Needs Improvement"
   const ratingColor = useMemo(() => {
     const rating = performance?.performance_rating
     return rating === 'Excellent' ? 'text-green-600 bg-green-50' :
@@ -109,10 +101,7 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         </button>
       </div>
       
-      {/* 📈 KPI METRICS GRID: Clickable cards show detailed data */}
-      {/* 💡 PRESENTATION HINT: "Each card is clickable to see detailed ticket lists" */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        {/* 💼 Active workload */}
         <button 
           className="text-center p-3 bg-blue-50 rounded cursor-pointer hover:shadow-md hover:bg-blue-100 transition-all duration-200 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
           onClick={() => onCardClick?.({ title: 'My Active Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status !== 'Closed') || [] })}
@@ -122,7 +111,6 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           <div className="text-xs text-gray-600">Active Tickets</div>
         </button>
         
-        {/* ✅ Completed work */}
         <button 
           className="text-center p-3 bg-green-50 rounded cursor-pointer hover:shadow-md hover:bg-green-100 transition-all duration-200 w-full focus:outline-none focus:ring-2 focus:ring-green-500" 
           onClick={() => onCardClick?.({ title: 'My Closed Tickets', data: tickets?.filter(t => t.assigned_to === agentId && t.status === 'Closed') || [] })}
@@ -132,13 +120,11 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
           <div className="text-xs text-gray-600">Closed Tickets</div>
         </button>
         
-        {/* ⏱️ Efficiency metric */}
         <div className="text-center p-3 bg-purple-50 rounded hover:bg-purple-100 transition-colors duration-200">
           <div className="text-xl sm:text-2xl font-bold text-purple-600">{performance.avg_handle_time ?? 0}h</div>
           <div className="text-xs text-gray-600">Avg Handle Time</div>
         </div>
         
-        {/* ⚠️ Performance issues */}
         <button 
           className="text-center p-3 bg-red-50 rounded cursor-pointer hover:shadow-md hover:bg-red-100 transition-all duration-200 w-full focus:outline-none focus:ring-2 focus:ring-red-500" 
           onClick={() => onCardClick?.({ title: 'My SLA Violations', data: tickets?.filter(t => t.assigned_to === agentId && t.sla_violated) || [] })}
@@ -149,8 +135,6 @@ export default function AgentPerformanceCard({ agentId, onCardClick, tickets }) 
         </button>
       </div>
 
-      {/* 🏆 OVERALL PERFORMANCE RATING: Calculated score with visual feedback */}
-      {/* 💡 PRESENTATION HINT: "System automatically calculates rating based on all metrics" */}
       <div className={`p-4 rounded-lg transition-all duration-300 ${ratingColor}`}>
         <div className="text-center">
           <div className="text-sm font-medium mb-1">Performance Rating</div>

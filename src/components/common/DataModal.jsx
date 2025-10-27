@@ -1,35 +1,26 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
-// 📊 DATA MODAL: Reusable component for displaying filtered/sorted data lists
-// 💡 PRESENTATION HINT: "This modal appears when you click statistics cards - shows detailed data"
+// Reusable data viewer with filtering, sorting, and CSV export
 export default function DataModal({ title, data, onClose }) {
-  // 🔍 FILTERING & SORTING: Advanced data manipulation
-  const [searchTerm, setSearchTerm] = useState('') // Search across title, description, ID
-  const [sortBy, setSortBy] = useState('id')] // Sort column
-  const [sortOrder, setSortOrder] = useState('asc')] // Sort direction
-  const [statusFilter, setStatusFilter] = useState('all')] // Filter by ticket status
-  
-  // 📄 PAGINATION: Handle large datasets
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState('id')]
+  const [sortOrder, setSortOrder] = useState('asc')]
+  const [statusFilter, setStatusFilter] = useState('all')]
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
   const [loading, setLoading] = useState(false)
   
-  // 🎯 DATA PROCESSING: Filter → Sort → Paginate pipeline
-  // 💡 PRESENTATION HINT: "Users can search, filter, and sort any data list"
   const filteredData = data.filter(item => {
-    // Multi-field search
     const matchesSearch = !searchTerm || 
       (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (item.id && item.id.toString().includes(searchTerm))
     
-    // Status filtering
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter
     
     return matchesSearch && matchesStatus
   }).sort((a, b) => {
-    // Dynamic sorting by any field
     const aVal = a[sortBy] || ''
     const bVal = b[sortBy] || ''
     const result = aVal.toString().localeCompare(bVal.toString())
@@ -58,12 +49,9 @@ export default function DataModal({ title, data, onClose }) {
     setCurrentPage(1)
   }
   
-  // 📥 CSV EXPORT: Download filtered data for external analysis
-  // 💡 PRESENTATION HINT: "Users can export any filtered data to Excel/CSV"
   const exportToCSV = async () => {
     setLoading(true)
     
-    // Define CSV structure
     const headers = ['ID', 'Title', 'Status', 'Priority', 'Created', 'Assigned']
     const csvData = filteredData.map(item => [
       item.id || '',
@@ -74,12 +62,10 @@ export default function DataModal({ title, data, onClose }) {
       item.assigned_to || ''
     ])
     
-    // Generate CSV content
     const csvContent = [headers, ...csvData]
       .map(row => row.map(field => `"${field}"`).join(','))
       .join('\n')
     
-    // Trigger download
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -109,9 +95,7 @@ export default function DataModal({ title, data, onClose }) {
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
             </div>
           </div>
-          {/* 🎛️ CONTROL PANEL: Search, sort, filter controls */}
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* 🔍 Search input */}
             <input
               type="text"
               placeholder="Search data..."
@@ -120,7 +104,6 @@ export default function DataModal({ title, data, onClose }) {
               className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
             />
             
-            {/* 📊 Sort by field */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -132,7 +115,6 @@ export default function DataModal({ title, data, onClose }) {
               <option value="status">Sort by Status</option>
             </select>
             
-            {/* 🎯 Status filter */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -145,7 +127,6 @@ export default function DataModal({ title, data, onClose }) {
               <option value="New">New</option>
             </select>
             
-            {/* ↕️ Sort direction toggle */}
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="px-3 py-2 border rounded-md hover:bg-gray-50"
@@ -153,7 +134,6 @@ export default function DataModal({ title, data, onClose }) {
               {sortOrder === 'asc' ? '↑' : '↓'}
             </button>
             
-            {/* 🧹 Clear all filters */}
             <button
               onClick={clearFilters}
               className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"

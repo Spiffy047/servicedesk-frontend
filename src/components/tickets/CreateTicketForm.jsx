@@ -29,7 +29,7 @@ export default function CreateTicketForm({ onClose, onSuccess }) {
         onSuccess(newTicket)
       }
     } catch (err) {
-      console.error('Failed to create ticket:', err)
+      alert('Failed to create ticket')
     } finally {
       setLoading(false)
     }

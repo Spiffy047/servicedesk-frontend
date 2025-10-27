@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import TicketDetailDialog from '../tickets/TicketDetailDialog'
-import { getAvailableStatuses } from '../../utils/ticketUtils'
+import { getAvailableStatuses, getEscalationRules, validateWorkflow, shouldAutoAssign, getStatusColor, getPriorityColor } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
 
@@ -45,6 +45,40 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
     } catch (err) {
       console.error('Failed to assign ticket:', err)
     }
+  }
+
+  const handleStatusChange = async (ticketId, newStatus) => {
+    const ticket = tickets.find(t => t.id === ticketId)
+    const validation = validateWorkflow(ticket, newStatus, user.role)
+    
+    if (!validation.isValid) {
+      alert(validation.errors.join('\n'))
+      return
+    }
+
+    try {
+      await fetch(`${API_URL}/tickets/${ticketId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          performed_by: user.id,
+          performed_by_name: user.name
+        })
+      })
+      fetchTickets()
+    } catch (err) {
+      console.error('Failed to update status:', err)
+    }
+  }
+
+  const getTicketAlerts = (ticket) => {
+    const rules = getEscalationRules(ticket)
+    return rules.map(rule => (
+      <div key={rule.type} className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+        ⚠️ {rule.reason}
+      </div>
+    ))
   }
 
   if (loading) {
@@ -110,26 +144,26 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
                       <h3 className="text-lg font-semibold text-gray-900">{ticket.title}</h3>
                       <p className="text-sm text-gray-600">{ticket.id}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
-                        ticket.status === 'Open' ? 'bg-green-100 text-green-800' :
-                        ticket.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {ticket.status}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        ticket.priority === 'Critical' ? 'bg-red-100 text-red-800' :
-                        ticket.priority === 'High' ? 'bg-orange-100 text-orange-800' :
-                        ticket.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                    <div className="flex gap-2 flex-wrap">
+                      <select
+                        value={ticket.status}
+                        onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(ticket.status)}`}
+                      >
+                        <option value={ticket.status}>{ticket.status}</option>
+                        {getAvailableStatuses(ticket.status).map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
                         {ticket.priority}
                       </span>
                     </div>
                   </div>
                   <p className="text-gray-700 mb-3">{ticket.description}</p>
+                  <div className="space-y-1 mb-3">
+                    {getTicketAlerts(ticket)}
+                  </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500">
                       Created: {new Date(ticket.created_at).toLocaleDateString()}

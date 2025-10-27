@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { useWebSocket } from '../../WebSocketContext'
+import { validateFileUpload, getFileIcon, formatFileSize } from '../../utils/ticketUtils'
 
 const API_URL = 'http://localhost:5002/api'
 
@@ -11,8 +13,11 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
   const [agents, setAgents] = useState([])
   const [attachments, setAttachments] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
+  const { isConnected, typingUsers, emitTyping } = useWebSocket()
 
   useEffect(() => {
     fetchMessages()
@@ -71,29 +76,15 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
     const file = e.target.files[0]
     if (!file) return
 
-    setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('ticket_id', ticket.id)
-    formData.append('uploaded_by', currentUser.id)
-
-    try {
-      await fetch(`${API_URL}/files/upload`, {
-        method: 'POST',
-        body: formData
-      })
-      fetchAttachments()
-    } catch (err) {
-      console.error('Failed to upload file:', err)
-    } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
+    await uploadFile(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
     if (!newMessage.trim()) return
+
+    emitTyping(ticket.id, false)
 
     try {
       const response = await fetch(`${API_URL}/messages`, {
@@ -114,6 +105,80 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       }
     } catch (err) {
       console.error('Failed to send message:', err)
+    }
+  }
+
+  const handleTyping = (value) => {
+    setNewMessage(value)
+    
+    if (value.trim()) {
+      emitTyping(ticket.id, true)
+      
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      
+      typingTimeoutRef.current = setTimeout(() => {
+        emitTyping(ticket.id, false)
+      }, 2000)
+    } else {
+      emitTyping(ticket.id, false)
+    }
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = async (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    for (const file of files) {
+      await uploadFile(file)
+    }
+  }
+
+  const uploadFile = async (file) => {
+    const validation = validateFileUpload(file, {
+      maxFileSize: 10 * 1024 * 1024,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'txt', 'zip']
+    })
+
+    if (!validation.valid) {
+      alert(validation.errors.join('\n'))
+      return
+    }
+
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('ticket_id', ticket.id)
+    formData.append('uploaded_by', currentUser.id)
+
+    try {
+      const response = await fetch(`${API_URL}/files/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+      
+      fetchAttachments()
+    } catch (err) {
+      console.error('Failed to upload file:', err)
+      alert('Failed to upload file')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -196,17 +261,31 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
           {attachments.length > 0 && (
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Attachments ({attachments.length})</h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {attachments.map(att => (
-                  <a
-                    key={att.id}
-                    href={`http://localhost:5002${att.download_url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm flex items-center gap-2"
-                  >
-                    📎 {att.filename} ({att.file_size_mb}MB)
-                  </a>
+                  <div key={att.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded border">
+                    <span className="text-lg">{getFileIcon(att.filename)}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{att.filename}</p>
+                      <p className="text-xs text-gray-500">{formatFileSize(att.file_size || 0)}</p>
+                    </div>
+                    <a
+                      href={`http://localhost:5002${att.download_url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                    >
+                      Download
+                    </a>
+                    {att.filename.match(/\.(jpg|jpeg|png|gif)$/i) && (
+                      <button
+                        onClick={() => window.open(`http://localhost:5002${att.download_url}`, '_blank')}
+                        className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
+                      >
+                        Preview
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -329,43 +408,62 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
         </div>
 
         <div className="p-6 border-t bg-white">
-          <form onSubmit={handleSendMessage} className="flex gap-3">
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSendMessage(e)
-                }
-              }}
-              placeholder="Type your message..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows="3"
-            />
-            <div className="flex flex-col gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileUpload}
-                className="hidden"
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <span className="text-xs text-gray-500">
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+            {typingUsers.size > 0 && (
+              <span className="text-xs text-blue-600">
+                {Array.from(typingUsers.values()).join(', ')} typing...
+              </span>
+            )}
+          </div>
+          <div 
+            className={`${isDragging ? 'border-blue-500 bg-blue-50' : ''} border-2 border-dashed border-gray-300 rounded-lg p-4`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <form onSubmit={handleSendMessage} className="flex gap-3">
+              <textarea
+                value={newMessage}
+                onChange={(e) => handleTyping(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMessage(e)
+                  }
+                }}
+                placeholder="Type your message or drag files here..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows="3"
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm disabled:opacity-50"
-              >
-                {uploading ? '⏳' : '📎'} Attach
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-              >
-                Send
-              </button>
-            </div>
-          </form>
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm disabled:opacity-50"
+                >
+                  {uploading ? '⏳' : '📎'} Attach
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

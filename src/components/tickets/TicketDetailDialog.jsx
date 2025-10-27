@@ -38,7 +38,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       const data = await response.json()
       setMessages(Array.isArray(data) ? data : data.messages || [])
     } catch (err) {
-      console.error('Failed to fetch messages:', err)
+      setMessages([])
     }
   }
 
@@ -48,7 +48,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       const data = await response.json()
       setActivities(data || [])
     } catch (err) {
-      console.error('Failed to fetch activities:', err)
+      setActivities([])
     }
   }
 
@@ -58,7 +58,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       const data = await response.json()
       setAgents(data || [])
     } catch (err) {
-      console.error('Failed to fetch agents:', err)
+      setAgents([])
     }
   }
 
@@ -68,7 +68,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       const data = await response.json()
       setAttachments(data || [])
     } catch (err) {
-      console.error('Failed to fetch attachments:', err)
+      setAttachments([])
     }
   }
 
@@ -104,7 +104,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
         await fetchMessages()
       }
     } catch (err) {
-      console.error('Failed to send message:', err)
+      alert('Failed to send message')
     }
   }
 
@@ -175,7 +175,6 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       
       fetchAttachments()
     } catch (err) {
-      console.error('Failed to upload file:', err)
       alert('Failed to upload file')
     } finally {
       setUploading(false)
@@ -197,7 +196,7 @@ export default function TicketDetailDialog({ ticket, onClose, currentUser, onUpd
       onUpdate()
       fetchActivities()
     } catch (err) {
-      console.error('Failed to update ticket:', err)
+      alert('Failed to update ticket')
     }
   }
 

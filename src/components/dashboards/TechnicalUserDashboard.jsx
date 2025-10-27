@@ -20,7 +20,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       const data = await response.json()
       setTickets(data || [])
     } catch (err) {
-      console.error('Failed to fetch tickets:', err)
+      setTickets([])
     } finally {
       setLoading(false)
     }
@@ -43,7 +43,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       })
       fetchTickets()
     } catch (err) {
-      console.error('Failed to assign ticket:', err)
+      alert('Failed to assign ticket')
     }
   }
 
@@ -68,7 +68,7 @@ export default function TechnicalUserDashboard({ user, onLogout }) {
       })
       fetchTickets()
     } catch (err) {
-      console.error('Failed to update status:', err)
+      alert('Failed to update status')
     }
   }
 

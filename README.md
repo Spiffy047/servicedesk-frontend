@@ -5,14 +5,15 @@ Complete HOTFIX ServiceDesk solution with React frontend and Flask backend, feat
 ## Live Demo
 
 - **Frontend**: https://hotfix-ochre.vercel.app
-- **Backend API**: https://hotfix.onrender.com/api
+- **Backend API**: https://hotfix.onrender.com
+- **Swagger api doc** - https://hotfix.onrender.com/api/docs/
 
 ## Project Structure
 
 ```
-sdm/
-├── it-servicedesk-backend/     # Flask REST API backend
-└── it-servicedesk-frontend/    # React frontend application
+hotfix/
+├── servicedesk-backend/     # Flask REST API backend
+└── servicedesk-frontend/    # React frontend application
 ```
 
 ## Technology Stack
@@ -80,7 +81,7 @@ sdm/
 
 ### Frontend Development
 ```bash
-cd it-servicedesk-frontend
+cd servicedesk-frontend
 npm install
 npm run dev
 # Opens at http://localhost:5173
@@ -88,13 +89,15 @@ npm run dev
 
 ### Backend Development
 ```bash
-cd it-servicedesk-backend
+cd servicedesk-backend
 pip install -r requirements.txt
 python app.py
 # Runs at http://localhost:5001
 ```
 
 ## Environment Variables
+
+⚠️ **Security Note**: Never commit `.env` files to version control. Use `.env.example` as template.
 
 ### Frontend (.env.local)
 ```bash
@@ -103,10 +106,13 @@ VITE_API_URL=http://localhost:5001/api
 
 ### Backend (.env)
 ```bash
+# Copy from .env.example and fill with your values
 DATABASE_URL=postgresql://user:pass@host:port/dbname
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+JWT_SECRET_KEY=your_jwt_secret
+SENDGRID_API_KEY=your_sendgrid_key
 ```
 
 ## Dependencies
@@ -297,7 +303,8 @@ The system uses a dynamic, database-driven configuration system:
 
 - **No hardcoded values** - All settings stored in database
 - **Flexible SLA targets** - Configurable per priority level
-- **Dynamic user roles** - Customizable permissions and access
+- **Dynamic user roles** - Customizable permissions and access levels
+- **Environment-based settings** - Separate configurations for development and productionaccess
 - **Configurable categories** - Adaptable ticket classification
 - **System settings** - Runtime configuration without code changes
 

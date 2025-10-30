@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react'
 import SLAAdherenceCard from '../analytics/SLAAdherenceCard'
 import AgentPerformanceScorecard from '../analytics/AgentPerformanceScorecard'
+import UserForm from '../forms/UserForm'
+import NotificationBell from '../notifications/NotificationBell'
+import TicketDetailDialog from '../tickets/TicketDetailDialog'
+import DataModal from '../common/DataModal'
+import Footer from '../common/Footer'
 
-const API_URL = 'http://localhost:5002/api'
+import { API_CONFIG } from '../../config/api'
+import { getRoleStyles } from '../../utils/styleHelpers'
+import { secureApiRequest } from '../../utils/api'
+
+const API_URL = API_CONFIG.BASE_URL
 
 export default function SystemAdminDashboard({ user, onLogout }) {
   const [users, setUsers] = useState([])
@@ -10,51 +19,104 @@ export default function SystemAdminDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showUserModal, setShowUserModal] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [systemStats, setSystemStats] = useState({ totalAgents: 0, activeTickets: 0, avgResolution: 0 })
+  const [modalData, setModalData] = useState(null)
+  const [slaData, setSlaData] = useState(null)
 
   useEffect(() => {
     fetchUsers()
+    fetchSystemStats()
+    fetchSlaData()
   }, [])
 
-  const fetchUsers = async () => {
+  const fetchSlaData = async () => {
     try {
-      const response = await fetch(`${API_URL}/users`)
-      const data = await response.json()
-      setUsers(data)
-      setAllUsers(data)
+      const data = await secureApiRequest('/tickets')
+      const tickets = data.tickets || data || []
+      setSlaData(tickets)
     } catch (err) {
-      console.error('Failed to fetch users:', err)
+      console.error('Failed to fetch SLA data:', err)
+      setSlaData([])
     }
   }
 
-  const handleSaveUser = async (e) => {
-    e.preventDefault()
-    const formData = new FormData(e.target)
-    
-    const userData = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      role: formData.get('role')
-    }
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (!searchTerm) {
+        setUsers(allUsers)
+        return
+      }
+      const filtered = allUsers.filter(u => 
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.role.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      setUsers(filtered)
+    }, 300)
 
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, allUsers])
+
+  const handleNotificationClick = async (ticketId, alertType) => {
+    try {
+      const data = await secureApiRequest('/tickets')
+      const tickets = data.tickets || data || []
+      const ticket = tickets.find(t => t.id === ticketId || t.ticket_id === ticketId)
+      if (ticket) {
+        setSelectedTicket(ticket)
+      } else {
+        alert('Ticket not found')
+      }
+    } catch (err) {
+      console.error('Failed to find ticket:', err)
+      alert('Failed to load ticket details')
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const data = await secureApiRequest('/users')
+      if (data.users && Array.isArray(data.users)) {
+        setUsers(data.users)
+        setAllUsers(data.users)
+      } else if (Array.isArray(data)) {
+        setUsers(data)
+        setAllUsers(data)
+      } else {
+        setUsers([])
+        setAllUsers([])
+      }
+    } catch (err) {
+      console.error('Failed to fetch users:', err)
+      setUsers([])
+      setAllUsers([])
+    }
+  }
+
+  const handleSaveUser = async (userData) => {
     try {
       if (editingUser) {
-        await fetch(`${API_URL}/users/${editingUser.id}`, {
+        await secureApiRequest(`/users/${editingUser.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData)
         })
       } else {
-        await fetch(`${API_URL}/users`, {
+        await secureApiRequest('/users', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData)
         })
       }
+      
+      alert('User saved successfully!')
       setShowUserModal(false)
       setEditingUser(null)
       fetchUsers()
     } catch (err) {
       console.error('Failed to save user:', err)
+      alert(err.message || 'Failed to save user')
     }
   }
 
@@ -62,10 +124,55 @@ export default function SystemAdminDashboard({ user, onLogout }) {
     if (!confirm('Are you sure you want to delete this user?')) return
     
     try {
-      await fetch(`${API_URL}/users/${userId}`, { method: 'DELETE' })
+      await secureApiRequest(`/users/${userId}`, { 
+        method: 'DELETE'
+      })
+      alert('User deleted successfully!')
       fetchUsers()
     } catch (err) {
       console.error('Failed to delete user:', err)
+      alert('Failed to delete user')
+    }
+  }
+
+  const fetchSystemStats = async () => {
+    try {
+      const [ticketsResponse, agentsResponse] = await Promise.all([
+        secureApiRequest('/tickets').catch(err => {
+          console.error('Failed to fetch tickets:', err)
+          return { tickets: [] }
+        }),
+        secureApiRequest('/users?role=Technical User,Technical Supervisor').catch(err => {
+          console.error('Failed to fetch agents:', err)
+          return { users: [] }
+        })
+      ])
+      
+      const ticketList = ticketsResponse?.tickets || ticketsResponse || []
+      const agentList = agentsResponse?.users || agentsResponse || []
+      
+      const activeTickets = ticketList.filter(t => t.status !== 'Closed').length
+      const totalAgents = agentList.filter(u => 
+        u.role === 'Technical User' || u.role === 'Technical Supervisor'
+      ).length
+      
+      // Calculate average resolution time from closed tickets
+      const closedTickets = ticketList.filter(t => t.status === 'Closed' && t.resolved_at)
+      const avgResolution = closedTickets.length > 0 
+        ? closedTickets.reduce((sum, ticket) => {
+            const created = new Date(ticket.created_at)
+            const resolved = new Date(ticket.resolved_at)
+            return sum + (resolved - created) / (1000 * 60 * 60) // hours
+          }, 0) / closedTickets.length
+        : 0
+      
+      setSystemStats({
+        totalAgents,
+        activeTickets,
+        avgResolution: (typeof avgResolution === 'number' && !isNaN(avgResolution) ? avgResolution : 0).toFixed(1)
+      })
+    } catch (err) {
+      console.error('Failed to fetch system stats:', err)
     }
   }
 
@@ -79,8 +186,9 @@ export default function SystemAdminDashboard({ user, onLogout }) {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">IT ServiceDesk - Admin Portal</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Hotfix ServiceDesk - Admin Portal</h1>
             <div className="flex items-center gap-4">
+              <NotificationBell user={user} onNotificationClick={handleNotificationClick} />
               <div className="text-sm">
                 <span className="text-gray-600">Welcome, </span>
                 <span className="font-medium">{user.name}</span>
@@ -97,24 +205,13 @@ export default function SystemAdminDashboard({ user, onLogout }) {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <input
             type="text"
-            placeholder="🔍 Search users by name, email, or role..."
-            onChange={(e) => {
-              const search = e.target.value.toLowerCase()
-              if (!search) {
-                setUsers(allUsers)
-                return
-              }
-              const filtered = allUsers.filter(u => 
-                u.name.toLowerCase().includes(search) ||
-                u.email.toLowerCase().includes(search) ||
-                u.role.toLowerCase().includes(search)
-              )
-              setUsers(filtered)
-            }}
+            placeholder="Search users by name, email, or role..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -160,26 +257,39 @@ export default function SystemAdminDashboard({ user, onLogout }) {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div onClick={() => setModalData({ title: 'SLA Adherence Details', data: slaData || [] })}>
               <SLAAdherenceCard />
+            </div>
+            
+
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div onClick={() => setModalData({ title: 'SLA Adherence Details', data: slaData || [] })}>
+                <SLAAdherenceCard />
+              </div>
               <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4">System Health</h3>
+                <h3 className="text-lg font-semibold mb-4">System Overview</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded">
-                    <span className="font-medium">API Status</span>
-                    <span className="text-green-600 font-semibold">✓ Operational</span>
+                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
+                    <span className="font-medium">Total Agents</span>
+                    <span className="text-blue-600 font-semibold">{systemStats.totalAgents}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-green-50 rounded">
-                    <span className="font-medium">Database</span>
-                    <span className="text-green-600 font-semibold">✓ Connected</span>
+                    <span className="font-medium">Active Tickets</span>
+                    <span className="text-green-600 font-semibold">{systemStats.activeTickets}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded">
-                    <span className="font-medium">Authentication</span>
-                    <span className="text-green-600 font-semibold">✓ Active</span>
+                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded">
+                    <span className="font-medium">Avg Resolution</span>
+                    <span className="text-yellow-600 font-semibold">{systemStats.avgResolution}h</span>
                   </div>
                 </div>
               </div>
             </div>
+            <AgentPerformanceScorecard />
           </div>
         )}
 
@@ -214,12 +324,7 @@ export default function SystemAdminDashboard({ user, onLogout }) {
                       <td className="px-6 py-4 whitespace-nowrap">{u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{u.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          u.role === 'System Admin' ? 'bg-purple-100 text-purple-800' :
-                          u.role === 'Technical Supervisor' ? 'bg-blue-100 text-blue-800' :
-                          u.role === 'Technical User' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleStyles(u.role)}`}>
                           {u.role}
                         </span>
                       </td>
@@ -248,11 +353,7 @@ export default function SystemAdminDashboard({ user, onLogout }) {
           </div>
         )}
 
-        {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <AgentPerformanceScorecard />
-          </div>
-        )}
+
       </main>
 
       {showUserModal && (
@@ -260,64 +361,28 @@ export default function SystemAdminDashboard({ user, onLogout }) {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">{editingUser ? 'Edit User' : 'Add User'}</h2>
-              <form onSubmit={handleSaveUser} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    defaultValue={editingUser?.name}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    defaultValue={editingUser?.email}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                  <select
-                    name="role"
-                    defaultValue={editingUser?.role || 'Normal User'}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="Normal User">Normal User</option>
-                    <option value="Technical User">Technical User</option>
-                    <option value="Technical Supervisor">Technical Supervisor</option>
-                    <option value="System Admin">System Admin</option>
-                  </select>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowUserModal(false)
-                      setEditingUser(null)
-                    }}
-                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+              <UserForm user={editingUser} onSubmit={handleSaveUser} onCancel={() => {
+                setShowUserModal(false)
+                setEditingUser(null)
+              }} />
+
             </div>
           </div>
         </div>
       )}
+
+      {selectedTicket && (
+        <TicketDetailDialog
+          ticket={selectedTicket}
+          currentUser={user}
+          onClose={() => setSelectedTicket(null)}
+          onUpdate={() => {}}
+        />
+      )}
+
+      {modalData && <DataModal title={modalData.title} data={modalData.data} onClose={() => setModalData(null)} />}
+      
+      <Footer />
     </div>
   )
 }

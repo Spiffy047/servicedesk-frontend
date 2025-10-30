@@ -1,6 +1,6 @@
-# IT ServiceDesk Platform
+# HOTFIX ServiceDesk Platform
 
-Complete IT ServiceDesk solution with React frontend and Flask backend, featuring role-based dashboards, real-time chat, comprehensive analytics, and intelligent auto-assignment.
+Complete HOTFIX ServiceDesk solution with React frontend and Flask backend, featuring role-based dashboards, real-time chat, comprehensive analytics, and intelligent auto-assignment.
 
 ## Live Demo
 

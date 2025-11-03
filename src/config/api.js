@@ -1,31 +1,11 @@
 /**
- * API Configuration
- * Centralized configuration for API endpoints
+ * API Configuration - DEPRECATED
+ * This file is no longer used. Use secureApiRequest from utils/api.js instead.
  */
 
-// Get API URL from environment variables
-const getApiUrl = () => {
-  // Vite uses VITE_ prefix for environment variables
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL
-  }
-  
-  // Fallback for React apps
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL
-  }
-  
-  // Default fallback for development
-  if (import.meta.env.DEV) {
-    return 'http://localhost:5000/api'
-  }
-  
-  // Production fallback
-  return 'https://hotfix.onrender.com/api'
-}
-
+// Deprecated - kept for compatibility but not functional
 export const API_CONFIG = {
-  BASE_URL: getApiUrl(),
+  BASE_URL: 'https://hotfix.onrender.com/api',
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3
 }

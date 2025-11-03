@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { API_CONFIG } from '../../config/api'
 import { getPriorityStyles } from '../../utils/styleHelpers'
-
-const API_URL = API_CONFIG.BASE_URL
+import { apiRequest } from '../../utils/simpleApi'
 
 export default function TicketAgingAnalysis() {
   const [agingData, setAgingData] = useState({})
@@ -15,9 +13,7 @@ export default function TicketAgingAnalysis() {
       try {
         setLoading(true)
         setError(null)
-        const res = await fetch(`${API_URL}/analytics/ticket-aging`)
-        if (!res.ok) throw new Error(`Failed to load aging data (${res.status})`)
-        const data = await res.json()
+        const data = await apiRequest('/analytics/ticket-aging')
         setAgingData(data || {})
       } catch (error) {
         console.error('Failed to fetch aging data:', error)

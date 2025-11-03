@@ -12,11 +12,8 @@ import SystemAdminDashboard from './components/dashboards/SystemAdminDashboard'
 // Import email verification component for 2-step authentication
 import EmailVerification from './components/auth/EmailVerification'
 import FixTicketNumbers from './components/admin/FixTicketNumbers'
-import { API_CONFIG } from './config/api'
-import { secureApiRequest } from './utils/api'
 
-// Backend API base URL for all API calls
-const API_URL = API_CONFIG.BASE_URL
+import { apiRequest } from './utils/simpleApi'
 
 /**
  * Main App Component
@@ -44,11 +41,7 @@ function App() {
       if (token) {
         try {
           // Validate token with backend
-          const userData = await secureApiRequest('/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
+          const userData = await apiRequest('/auth/me')
           
           if (userData && userData.id) {
             setUser(userData)
@@ -79,7 +72,7 @@ function App() {
 
     try {
       // Make API call to authenticate user using secure wrapper
-      const responseData = await secureApiRequest('/auth/login', {
+      const responseData = await apiRequest('/auth/login', {
         method: 'POST',
         body: JSON.stringify(formData)
       })
@@ -100,6 +93,9 @@ function App() {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
         // Network/connection error
         setError('Cannot connect to server. Please check your internet connection or try again later.')
+      } else if (err.message.includes('API_URL')) {
+        // API configuration error
+        setError('Configuration error. Please try refreshing the page.')
       } else {
         // Authentication or other errors
         setError(err.message || 'Login failed')
@@ -222,13 +218,16 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/verify-email" element={<EmailVerification />} />
-        <Route path="/dashboard/*" element={getDashboardComponent()} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Router>
+    <div>
+      <Router>
+        <Routes>
+          <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/dashboard/*" element={getDashboardComponent()} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Router>
+
+    </div>
   )
 }
 

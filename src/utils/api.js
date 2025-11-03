@@ -1,25 +1,8 @@
 /**
  * Secure API utility functions for IT ServiceDesk frontend
- * 
- * This module provides secure API communication with the backend, including:
- * - CSRF (Cross-Site Request Forgery) protection for state-changing requests
- * - SSRF (Server-Side Request Forgery) prevention through URL validation
- * - Comprehensive error handling with user-friendly messages
- * - Domain allowlisting to prevent malicious API calls
- * - Private IP range blocking for security
- * 
- * Security Features:
- * - URL validation against allowed domains
- * - CSRF token inclusion for POST/PUT/DELETE requests
- * - Private IP range blocking (127.x.x.x, 10.x.x.x, 192.168.x.x, etc.)
- * - Proper error parsing and handling
- * - Same-origin credential policy
  */
 
-import { API_CONFIG } from '../config/api'
-
-// Base API URL from configuration
-const API_URL = API_CONFIG.BASE_URL
+import { getApiUrl } from './apiUrl'
 
 /**
  * Get list of allowed domains for API calls (SSRF prevention)
@@ -31,15 +14,17 @@ const API_URL = API_CONFIG.BASE_URL
  */
 const getAllowedDomains = () => {
   try {
+    const baseUrl = getApiUrl()
     return [
-      new URL(API_CONFIG.BASE_URL).hostname,  // Production API domain
-      'localhost',    // Local development
-      '127.0.0.1'     // Local loopback
+      new URL(baseUrl).hostname,  // Production API domain
+      'hotfix.onrender.com',      // Explicit production domain
+      'localhost',                // Local development
+      '127.0.0.1'                // Local loopback
     ]
   } catch (error) {
     console.error('Failed to parse API base URL:', error)
     // Fallback to safe defaults if config is invalid
-    return ['localhost', '127.0.0.1']
+    return ['hotfix.onrender.com', 'localhost', '127.0.0.1']
   }
 }
 
@@ -127,6 +112,7 @@ const isUrlSafe = (url) => {
  */
 export const secureApiRequest = async (endpoint, options = {}) => {
   // Construct full URL from base URL and endpoint
+  const API_URL = getApiUrl()
   const fullUrl = `${API_URL}${endpoint}`
   
   // Security validation: Prevent SSRF attacks
@@ -142,20 +128,20 @@ export const secureApiRequest = async (endpoint, options = {}) => {
   // Get JWT token for authentication
   const token = localStorage.getItem('token')
   
-  // Build secure request configuration
+  // Build secure request configuration with intelligent Content-Type handling
   const config = {
     ...options,
     headers: {
-      // Only add Content-Type for non-FormData requests
+      // Automatically detect FormData and avoid setting Content-Type (browser handles boundary)
       ...(!(options.body instanceof FormData) && { 'Content-Type': 'application/json' }),
-      // Add JWT token for authentication
+      // JWT authentication for secure API access
       ...(token && { 'Authorization': `Bearer ${token}` }),
-      // Add CSRF token for state-changing requests
+      // CSRF protection for state-changing operations
       ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-      // Preserve any additional headers from caller
+      // Preserve caller-specified headers
       ...options.headers
     },
-    // Use same-origin credentials policy for security
+    // Secure credential policy
     credentials: 'same-origin'
   }
 
@@ -198,5 +184,5 @@ export const secureApiRequest = async (endpoint, options = {}) => {
   return data
 }
 
-// Export API URL for use in other modules
-export { API_URL }
+// Export API URL getter for use in other modules
+export const getApiUrlForExport = () => getApiUrl()

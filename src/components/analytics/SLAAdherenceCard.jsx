@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { API_CONFIG } from '../../config/api'
 import { getSLAAdherenceColors } from '../../utils/styleHelpers'
-
-const API_URL = API_CONFIG.BASE_URL
+import { apiRequest } from '../../utils/simpleApi'
 
 export default function SLAAdherenceCard() {
   const [data, setData] = useState(null)
@@ -14,9 +12,7 @@ export default function SLAAdherenceCard() {
       try {
         setLoading(true)
         setError(null)
-        const res = await fetch(`${API_URL}/tickets/analytics/sla-adherence?t=${Date.now()}`)
-        if (!res.ok) throw new Error(`Failed to load SLA data (${res.status})`)
-        const data = await res.json()
+        const data = await apiRequest('/tickets/analytics/sla-adherence')
         setData(data || {})
       } catch (error) {
         console.error('Failed to fetch SLA adherence data:', error)

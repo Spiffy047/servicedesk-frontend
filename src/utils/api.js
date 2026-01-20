@@ -16,15 +16,14 @@ const getAllowedDomains = () => {
   try {
     const baseUrl = getApiUrl()
     return [
-      new URL(baseUrl).hostname,  // Production API domain
-      'hotfix.onrender.com',      // Explicit production domain
+      new URL(baseUrl).hostname,  // Current API domain
       'localhost',                // Local development
       '127.0.0.1'                // Local loopback
     ]
   } catch (error) {
     console.error('Failed to parse API base URL:', error)
     // Fallback to safe defaults if config is invalid
-    return ['hotfix.onrender.com', 'localhost', '127.0.0.1']
+    return ['localhost', '127.0.0.1']
   }
 }
 

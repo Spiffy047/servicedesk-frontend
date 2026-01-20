@@ -5,7 +5,7 @@
 
 // Deprecated - kept for compatibility but not functional
 export const API_CONFIG = {
-  BASE_URL: 'https://hotfix.onrender.com/api',
+  BASE_URL: 'http://localhost:5001/api',
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3
 }

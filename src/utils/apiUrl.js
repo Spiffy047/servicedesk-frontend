@@ -1,19 +1,14 @@
 // Simple API URL utility that works in all environments
 export const getApiUrl = () => {
-  // Production fallback first
-  const prodUrl = 'https://hotfix.onrender.com/api'
+  // Default to localhost
+  const defaultUrl = 'http://localhost:5001/api'
   
   try {
-    // Check if we're in development first
-    if (import.meta?.env?.DEV) {
-      return import.meta?.env?.VITE_API_URL || 'http://localhost:5001/api'
-    }
-    
-    // Production mode - always use production URL
-    return prodUrl
+    // Always use localhost for development
+    return import.meta?.env?.VITE_API_URL || defaultUrl
   } catch (error) {
     console.error('API URL config error:', error)
-    return prodUrl
+    return defaultUrl
   }
 }
 
